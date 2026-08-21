@@ -1,0 +1,121 @@
+{
+  "versi": 1,
+  "catatan": "Digenerate build_regresi_set.py (F-100). `sumber_label: baseline` berarti angkanya keluaran engine yang dikunci, bukan penilaian manusia — set ini mendeteksi perubahan, bukan membuktikan akurasi.",
+  "toleransi": {
+    "komposisi_absolut": 0.1,
+    "objek_relatif": 0.2,
+    "objek_minimal": 1
+  },
+  "komoditas": {
+    "chili": {
+      "varian_diuji": "chili_hijau_besar",
+      "target_foto": 10,
+      "foto_tersedia": 4,
+      "status": "kurang",
+      "sumber": "datasets/raw_new_zips_yolo1/chili/…yolov11.zip (split test)"
+    },
+    "tomato": {
+      "varian_diuji": "tomato_merah",
+      "target_foto": 10,
+      "foto_tersedia": 1,
+      "status": "kurang",
+      "sumber": "outputs/image.jpg (foto uji integrasi engine)"
+    },
+    "carrot": {
+      "varian_diuji": "carrot",
+      "target_foto": 10,
+      "foto_tersedia": 0,
+      "status": "kosong",
+      "alasan": "Repo hanya menyimpan potongan klasifikasi 224x224 (satu objek per berkas, dibidik ketat). Potongan begitu tidak bisa menyamar jadi foto panen: komposisi grade dari satu objek bukan komposisi batch. Butuh 10 foto panen wortel berkoin Rp500 dari lapangan."
+    },
+    "cucumber": {
+      "varian_diuji": "cucumber_lokal",
+      "target_foto": 10,
+      "foto_tersedia": 0,
+      "status": "kosong",
+      "alasan": "Sama seperti wortel: yang ada hanya potongan klasifikasi 224x224, bukan foto adegan. Butuh 10 foto panen timun berkoin Rp500."
+    }
+  },
+  "foto": [
+    {
+      "berkas": "foto/chili/chili-01.jpg",
+      "asal_nama": "IMG_20250106_185019_jpg.rf.5740eb875ceac5756e6d52018830dcba.jpg",
+      "komoditas": "chili_hijau_besar",
+      "objek_terdeteksi": 15,
+      "komposisi": {
+        "A": 0.4,
+        "B": 0.2,
+        "C": 0.27,
+        "REJECT": 0.13
+      },
+      "berisi_koin": false,
+      "kalibrasi_diklaim": true,
+      "sumber_label": "baseline",
+      "dicatat": "2026-08-17"
+    },
+    {
+      "berkas": "foto/chili/chili-03.jpg",
+      "asal_nama": "banana16_webp.rf.93ea1dac27b0cd53e874ba75e2cea1f8.jpg",
+      "komoditas": "chili_hijau_besar",
+      "objek_terdeteksi": 6,
+      "komposisi": {
+        "A": 0.5,
+        "B": 0.33,
+        "C": 0.17,
+        "REJECT": 0.0
+      },
+      "berisi_koin": false,
+      "kalibrasi_diklaim": false,
+      "sumber_label": "baseline",
+      "dicatat": "2026-08-17"
+    },
+    {
+      "berkas": "foto/chili/chili-09.jpg",
+      "asal_nama": "sweet25_webp.rf.acb55246107347d7fa1b8daf930e0ebd.jpg",
+      "komoditas": "chili_hijau_besar",
+      "objek_terdeteksi": 11,
+      "komposisi": {
+        "A": 0.73,
+        "B": 0.18,
+        "C": 0.09,
+        "REJECT": 0.0
+      },
+      "berisi_koin": false,
+      "kalibrasi_diklaim": true,
+      "sumber_label": "baseline",
+      "dicatat": "2026-08-17"
+    },
+    {
+      "berkas": "foto/chili/chili-10.jpg",
+      "asal_nama": "sweet27_avif.rf.46beba4ef4eafe25c8f8abe2a52ed045.jpg",
+      "komoditas": "chili_hijau_besar",
+      "objek_terdeteksi": 13,
+      "komposisi": {
+        "A": 0.0,
+        "B": 0.46,
+        "C": 0.54,
+        "REJECT": 0.0
+      },
+      "berisi_koin": false,
+      "kalibrasi_diklaim": true,
+      "sumber_label": "baseline",
+      "dicatat": "2026-08-17"
+    },
+    {
+      "berkas": "foto/tomato/tomato-01.jpg",
+      "asal_nama": "image.jpg",
+      "komoditas": "tomato_merah",
+      "objek_terdeteksi": 2,
+      "komposisi": {
+        "A": 0.0,
+        "B": 1.0,
+        "C": 0.0,
+        "REJECT": 0.0
+      },
+      "berisi_koin": false,
+      "kalibrasi_diklaim": true,
+      "sumber_label": "baseline",
+      "dicatat": "2026-08-17"
+    }
+  ]
+}

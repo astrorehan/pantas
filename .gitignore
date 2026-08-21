@@ -1,0 +1,20 @@
+# Dataset Folders
+ai_engine/datasets/yolo1_segmentation/
+ai_engine/datasets/yolo2_classification/
+ai_engine/datasets/raw_zips/
+
+# YOLO Weights and Runs
+ai_engine/runs/
+ai_engine/*.pt
+!ai_engine/export_models/*.pt
+
+# Python Caches
+__pycache__/
+*/__pycache__/
+*.pyc
+
+# Environments
+.env
+.venv/
+venv/
+supabase/.temp/

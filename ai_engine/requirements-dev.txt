@@ -1,0 +1,6 @@
+# Kebutuhan pengembangan saja. Tidak masuk image Hugging Face Spaces:
+# Dockerfile hanya memasang requirements.txt, dan pytest tidak dipakai server.
+-r requirements.txt
+
+# Set regresi grading (F-100) — test_regresi_grading.py
+pytest

@@ -1,0 +1,42 @@
+{
+  "_catatan": [
+    "Faktor densitas areal (gram per mm² luas terproyeksi) untuk F-101.",
+    "Berkas ini adalah satu-satunya sumber angka yang dipakai weight_estimator.py.",
+    "Regenerasi dari data serah terima nyata: python calibrate_density.py",
+    "(membaca view public.densitas_kalibrasi_view — lihat supabase/migrations/0010).",
+    "Selama n_sampel = 0, angkanya turunan geometri, bukan kalibrasi lapangan,",
+    "dan rel_ketidakpastian sengaja lebar supaya rentang yang ditampilkan jujur."
+  ],
+  "_versi": 1,
+  "_diperbarui": "2026-07-29",
+  "faktor": {
+    "tomato": {
+      "gram_per_mm2": 0.0392,
+      "rel_ketidakpastian": 0.25,
+      "n_sampel": 0,
+      "sumber": "Turunan geometri: bola r≈30 mm, densitas buah 0,98 g/cm³ (USDA FoodData Central, tomat mentah)",
+      "catatan": "Luas terproyeksi bola = pi*r^2, massa = 4/3*pi*r^3*rho, jadi gram/mm² = 4/3 * r * rho."
+    },
+    "chili": {
+      "gram_per_mm2": 0.0077,
+      "rel_ketidakpastian": 0.3,
+      "n_sampel": 0,
+      "sumber": "Turunan geometri: silinder r≈5 mm, densitas 0,98 g/cm³",
+      "catatan": "Buah memanjang: gram/mm² = pi/2 * r * rho. Ketidakpastian lebih lebar karena rasio panjang-diameter cabai sangat beragam antarvarietas."
+    },
+    "carrot": {
+      "gram_per_mm2": 0.0245,
+      "rel_ketidakpastian": 0.3,
+      "n_sampel": 0,
+      "sumber": "Turunan geometri: kerucut terpancung r≈15 mm, densitas 1,04 g/cm³ (umbi berair, tenggelam di air)",
+      "catatan": "Diperlakukan sebagai silinder: gram/mm² = pi/2 * r * rho. Ujung meruncing membuat angka sebenarnya sedikit lebih rendah."
+    },
+    "cucumber": {
+      "gram_per_mm2": 0.0302,
+      "rel_ketidakpastian": 0.3,
+      "n_sampel": 0,
+      "sumber": "Turunan geometri: silinder r≈20 mm, densitas 0,96 g/cm³",
+      "catatan": "gram/mm² = pi/2 * r * rho."
+    }
+  }
+}

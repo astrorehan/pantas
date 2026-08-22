@@ -1,0 +1,11 @@
+import { getListings } from "@/lib/data";
+import PetaClient from "./peta-client";
+
+export const metadata = { title: "Peta Pemasok Terdekat" };
+
+export const revalidate = 60;
+
+export default async function PetaPage() {
+  const listings = await getListings();
+  return <PetaClient listings={listings} />;
+}

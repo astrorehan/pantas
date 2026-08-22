@@ -1,0 +1,162 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A second push to the same branch cancels the first â€” the free runner minutes
+# matter more than a complete history of red builds.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: web â€” typecheck, lint, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # Menambah dependency dari Windows: `npm install` biasa menghasilkan lock
+      # yang lolos lokal tapi gagal di sini dengan "EUSAGE ... Missing:
+      # @emnapi/core@... from lock file". Peer dependency opsional milik paket
+      # wasm (sharp, tailwind oxide) disusun berbeda menurut DUA hal â€” platform
+      # (runner ini Linux) dan versi npm (Node 22 membawa npm 10.9.8, sedangkan
+      # npm 11 menyusun pohonnya lain). Keduanya harus dicocokkan:
+      #   npx npm@10.9.8 install --package-lock-only --os=linux --cpu=x64
+      # lalu pastikan lolos di ketiga kombinasi sebelum push:
+      #   npx npm@10.9.8 ci --dry-run --os=linux --cpu=x64   # persis CI
+      #   npx npm@10.9.8 ci --dry-run
+      #   npm ci --dry-run                                   # npm lokal
+      - run: npm ci
+
+      # The commodity list in the UI is generated from ai_engine/grading_configs.
+      # A diff here means someone edited the generated file by hand, or added a
+      # config without regenerating â€” either way the UI would offer commodities
+      # the engine cannot grade (Â§13.3).
+      - name: Generated commodity list is in sync
+        run: |
+          npm run gen:komoditas
+          git diff --exit-code -- src/lib/komoditas.generated.ts
+
+      # Next 16 menyuntikkan tipe global seperti PageProps<"/rute/[id]"> dari
+      # .next/types, dan direktori itu hanya ada setelah dev atau build jalan.
+      # Di mesin lokal ia tertinggal dari sesi sebelumnya, jadi tsc lolos; di
+      # runner yang selalu bersih, tsc gagal dengan "Cannot find name
+      # 'PageProps'". Membangkitkannya lebih dulu jauh lebih murah daripada
+      # memindahkan build ke atas hanya demi tipe.
+      - name: Generate route types
+        run: npx next typegen
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # Also enforces the design-system guardrails: no 430px phone frame
+      # (F-76) and no Supabase imports outside the data/store seams (Â§12.3).
+      - name: Lint
+        run: npx eslint
+
+      # Kelas Tailwind yang salah tulis tidak gagal â€” ia hilang diam-diam, jadi
+      # `bg-surface-raised` merender kartu transparan dan lolos sampai produksi.
+      # Hanya pemeriksaan yang membandingkan pemakaian dengan globals.css yang
+      # bisa menangkapnya.
+      - name: Token sistem desain
+        run: npm run check:tokens
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_PREDICT_URL: ${{ secrets.NEXT_PUBLIC_PREDICT_URL }}
+
+      # NFR-31 / R-10: the service role key must never reach the client bundle.
+      # Cheap to check, catastrophic to miss.
+      - name: No server secrets in the client bundle
+        run: |
+          if grep -rl "SERVICE_ROLE" .next/static/ 2>/dev/null; then
+            echo "::error::SERVICE_ROLE ditemukan di bundle klien"
+            exit 1
+          fi
+          echo "bundle klien bersih"
+
+  perf:
+    name: perf â€” anggaran NFR-01..05
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # Menambah dependency dari Windows: `npm install` biasa menghasilkan lock
+      # yang lolos lokal tapi gagal di sini dengan "EUSAGE ... Missing:
+      # @emnapi/core@... from lock file". Peer dependency opsional milik paket
+      # wasm (sharp, tailwind oxide) disusun berbeda menurut DUA hal â€” platform
+      # (runner ini Linux) dan versi npm (Node 22 membawa npm 10.9.8, sedangkan
+      # npm 11 menyusun pohonnya lain). Keduanya harus dicocokkan:
+      #   npx npm@10.9.8 install --package-lock-only --os=linux --cpu=x64
+      # lalu pastikan lolos di ketiga kombinasi sebelum push:
+      #   npx npm@10.9.8 ci --dry-run --os=linux --cpu=x64   # persis CI
+      #   npx npm@10.9.8 ci --dry-run
+      #   npm ci --dry-run                                   # npm lokal
+      - run: npm ci
+
+      # Sengaja dibangun TANPA env Supabase. Dua alasan: sesi demo yang ditanam
+      # scripts/lighthouse-seed-session.cjs hanya dihormati saat aplikasi berjalan
+      # dalam mode offline, dan angka LCP jadi tidak bergantung pada latensi
+      # proyek Supabase yang di luar kendali PR ini.
+      - name: Build (mode demo offline)
+        run: npm run perf:build
+
+      # NFR-05: JS first-load tiap route < 180 KB gzip.
+      - name: Anggaran ukuran bundel
+        run: npm run perf:bundle
+
+      # NFR-01..04: LCP, CLS, dan TBT sebagai proksi lab INP.
+      - name: Anggaran Lighthouse
+        run: npm run perf:lighthouse
+
+      # Laporan HTML-nya dilampirkan ke PR sebagai bukti verifikasi (NFR-43).
+      #
+      # `include-hidden-files` wajib: sejak upload-artifact v4.4 berkas di dalam
+      # direktori berawalan titik dilewati diam-diam, dan `.lighthouseci/` persis
+      # itu. Digabung `if-no-files-found: ignore`, langkah ini sempat mencetak
+      # "No files were found" lalu tetap hijau â€” jadi setiap PR sejak itu lulus
+      # tanpa pernah melampirkan satu laporan pun. Sekarang ketiadaan berkas
+      # membuat langkahnya gagal, supaya bukti yang hilang tidak lagi senyap.
+      - name: Unggah laporan Lighthouse
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: web/.lighthouseci/
+          include-hidden-files: true
+          if-no-files-found: error
+
+
+# Masih menyusul, sesuai Â§16.3 â€” ditambahkan saat perkakasnya mendarat, bukan
+# sebagai langkah yang selalu merah:
+#   vitest run          unit + komponen (Fase 3)
+#   playwright test     alur emas G1â€“G5 (Â§17.1, Fase 2 item 17)
+#   axe                 pemindaian aksesibilitas (F-96)
+

@@ -1,0 +1,47 @@
+name: Reset akun demo
+
+# F-03 minta data demo dipulihkan tiap 6 jam selama jendela penjurian, supaya
+# juri ketiga melihat dashboard yang sama dengan juri pertama.
+#
+# Penjadwalannya di sini, bukan di vercel.json: paket Vercel Hobby membatasi
+# cron ke sekali sehari dan menolak ekspresi `0 */6 * * *` saat deploy. GitHub
+# Actions memberi cadence itu tanpa biaya, dan repositori ini sudah memakainya.
+#
+# Jadwal cron GitHub adalah UTC — 00/06/12/18 UTC = 07/13/19/01 WIB. Runner
+# gratis bersifat best-effort dan bisa telat beberapa menit; untuk pemulihan
+# data demo itu tidak masalah. Jalankan `workflow_dispatch` bila butuh segera.
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  reset:
+    name: POST /api/demo/reset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Panggil endpoint reset
+        env:
+          URL: ${{ vars.DEMO_RESET_URL || 'https://pantas-ai.vercel.app/api/demo/reset' }}
+          TOKEN: ${{ secrets.DEMO_RESET_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::Secret DEMO_RESET_TOKEN belum diset di repositori. Nilainya harus sama dengan env DEMO_RESET_TOKEN di Vercel."
+            exit 1
+          fi
+
+          kode=$(curl -sS --max-time 60 -o body.json -w '%{http_code}' \
+            -X POST "$URL" -H "x-demo-reset-token: $TOKEN")
+
+          echo "HTTP $kode"
+          cat body.json || true
+          echo
+
+          # Gagal keras, bukan diam: reset demo yang berhenti bekerja tanpa
+          # terlihat berarti juri berikutnya menemukan dashboard yang sudah
+          # diacak-acak juri sebelumnya.
+          if [ "$kode" != "200" ]; then
+            echo "::error::Reset demo gagal dengan HTTP $kode"
+            exit 1
+          fi

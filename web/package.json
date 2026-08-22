@@ -1,0 +1,62 @@
+﻿{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "npm run gen:komoditas && npm run gen:metrik",
+    "dev": "next dev",
+    "prebuild": "npm run gen:komoditas && npm run gen:metrik",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "perf:build": "node scripts/perf-build.mjs",
+    "perf:bundle": "node scripts/check-bundle-budget.mjs",
+    "perf:lighthouse": "lhci autorun",
+    "analyze": "next experimental-analyze --output",
+    "gen:komoditas": "node scripts/gen-komoditas.mjs",
+    "gen:metrik": "node scripts/gen-metrik-model.mjs",
+    "check:tokens": "node scripts/check-tokens.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.24.0",
+    "next": "16.2.10",
+    "next-intl": "^4.13.4",
+    "qrcode": "^1.5.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-leaflet": "^5.0.0",
+    "sonner": "^2.0.7"
+  },
+  "devDependencies": {
+    "@lhci/cli": "^0.15.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "fast-check": "^4.9.0",
+    "proxy-agent": "^8.0.2",
+    "puppeteer": "^25.4.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^4.1.10"
+  },
+  "browserslist": [
+    "defaults and supports es6-module",
+    "last 2 Chrome versions",
+    "last 2 Safari versions",
+    "last 2 iOS versions",
+    "last 2 Edge versions",
+    "last 2 Firefox versions",
+    "not dead"
+  ]
+}
+

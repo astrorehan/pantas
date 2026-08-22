@@ -1,0 +1,1058 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Mobile responsive overflow-x protection
+   Prevents empty horizontal space ("space sisa") when zoomed out on mobile
+
+   `clip`, bukan `hidden`. Keduanya memotong luapan mendatar dengan hasil yang
+   sama di layar, tapi `overflow: hidden` menjadikan elemennya wadah gulir —
+   dan `position: sticky` menempel pada wadah gulir terdekat, bukan pada
+   viewport. Karena tinggi `body` persis setinggi isinya, wadah itu tidak
+   pernah bergulir, jadi tidak ada satu pun bilah `sticky` di aplikasi ini yang
+   benar-benar menempel: bilah atas, sub-tab, maupun panel peta semuanya ikut
+   tergulung hilang pada gulir pertama. `overflow: clip` memotong tanpa
+   membuat wadah gulir, jadi `sticky` kembali mengacu ke viewport.
+--------------------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    overflow-x: clip !important;
+    max-width: 100vw !important;
+    width: 100%;
+    position: relative;
+    margin: 0;
+    padding: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Dark mode resolution (§7.2)
+
+   System preference is the default signal; an explicit `data-theme` on <html>
+   must win in *both* directions, so a user who picked "terang" still gets the
+   light theme on a phone set to system-dark.
+
+   Colour tokens do this with `light-dark()` driven by `color-scheme`, which
+   keeps every token to a single declaration — no duplicated dark block to drift
+   out of sync. The `dark:` variant below exists only for the handful of
+   non-colour properties that cannot ride a token.
+--------------------------------------------------------------------------- */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+
+  &:where(:root[data-theme="dark"] *) {
+    @slot;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Ponsel dalam orientasi lanskap (F-80).
+
+   Petani memotret bedengan yang memanjang, jadi layar pindai harus tetap
+   terpakai saat ponsel dimiringkan. Tinggi dibatasi 520px supaya varian ini
+   tidak ikut menyala di tablet lanskap, yang justru punya ruang vertikal cukup
+   untuk tata letak biasa.
+--------------------------------------------------------------------------- */
+@custom-variant ponsel-lanskap {
+  @media (orientation: landscape) and (height <=520px) {
+    @slot;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Primitive scales — never referenced directly by components. Components use
+   the semantic aliases further down so a token can be re-pointed in one place.
+--------------------------------------------------------------------------- */
+@theme {
+  /* Daun, bukan mint.
+   *
+   * Ramp lama berpusat di hue ~154° — hijau yang condong teal, warna dashboard
+   * fintech. Sekarang hue ~135°: hijau daun. Yang berubah cuma nilainya; nama
+   * skalanya tetap `green` karena ±100 call site (terutama `printable-*`)
+   * memanggilnya langsung, dan mengganti nama demi kerapian berarti menyentuh
+   * seratus berkas untuk nol perubahan visual. */
+  --color-green-50: #eaf6ed;
+  --color-green-100: #d2ead8;
+  --color-green-200: #a7d3b2;
+  --color-green-300: #79b989;
+  --color-green-400: #4ba060;
+  /* brand mark */
+  --color-green-500: #338448;
+  --color-green-600: #246634;
+  --color-green-700: #1a4d26;
+  --color-green-800: #12361b;
+  --color-green-900: #0c2211;
+  --color-green-950: #07120a;
+
+  /* Aksen tanah. Dulu skala ini praktis mati — satu-satunya konsumennya adalah
+     `grade-b`. Sekarang ia sumbu hangat kedua palet: chip, surface-warn, kolom
+     angka. `600` baru: `500` tidak pernah lolos 4.5:1 di atas sunken. */
+  --color-clay-50: #f9f0e6;
+  --color-clay-100: #f3ddc4;
+  --color-clay-300: #ddae78;
+  --color-clay-500: #b57c3b;
+  --color-clay-600: #825726;
+  --color-clay-700: #69451c;
+  --color-clay-900: #3c2810;
+
+  /* Netral oat — gandum, bukan abu.
+   *
+   * Ramp lama praktis tidak berwarna: `50` (#faf9f7) dan `0` (#ffffff) beda
+   * 1,05:1, jadi kartu putih di atas halaman putih hanya terbaca lewat garis
+   * 1px. Ujung terang sekarang punya kroma sungguhan sehingga kanvas, kartu,
+   * dan permukaan cekung terpisah tanpa dibantu garis. */
+  --color-stone-0: #ffffff;
+  --color-stone-50: #fcfbf8;
+  --color-stone-100: #f2ede3;
+  --color-stone-200: #eae3d7;
+  --color-stone-300: #d8cebb;
+  --color-stone-400: #b7a98f;
+  --color-stone-500: #7a7163;
+  --color-stone-600: #655c4e;
+  --color-stone-700: #544d40;
+  --color-stone-800: #3d382e;
+  --color-stone-900: #1e1b15;
+  --color-stone-950: #0f0d0a;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  /* Nudged up from 10/14. The scale is tuned in one place rather than at call
+     sites so a softer card does not mean auditing sixty `rounded-*` classes,
+     and so cards, buttons, and inputs stay in the same family. */
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-full: 9999px;
+  /* Legacy alias — existing screens still say `rounded-card`. */
+  --radius-card: 12px;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
+
+  --font-display:
+    var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  /* Layout rails (§8.2) — one source of truth for AppShell offsets. */
+  --spacing-rail: 88px;
+  --spacing-sidebar: 256px;
+  --spacing-bottomnav: 72px;
+}
+
+/* ---------------------------------------------------------------------------
+   Semantic tokens. `@theme inline` emits utilities that *reference* the custom
+   property instead of copying its value, which is what lets one `bg-surface`
+   class flip between themes at runtime.
+--------------------------------------------------------------------------- */
+@theme inline {
+  --color-canvas: var(--surface-canvas);
+  --color-surface: var(--surface-raised);
+  --color-overlay: var(--surface-overlay);
+  --color-sunken: var(--surface-sunken);
+
+  --color-ink: var(--text-primary);
+  --color-muted: var(--text-secondary);
+  --color-label: var(--text-tertiary);
+  --color-placeholder: var(--text-tertiary);
+
+  --color-line: var(--border-subtle);
+  --color-line-strong: var(--border-strong);
+
+  --color-brand: var(--accent-primary);
+  --color-brand-deep: var(--accent-hover);
+  --color-brand-dark: var(--accent-deep);
+  --color-brand-tint: var(--accent-tint);
+  --color-brand-tint-strong: var(--accent-tint-strong);
+  --color-on-brand: var(--accent-on);
+
+  --color-danger: var(--danger-primary);
+  --color-danger-tint: var(--danger-tint);
+
+  /* Ladang chrome. `bg-field` adalah satu-satunya isian besar berwarna di
+     produk; sisanya oat. */
+  --color-field: var(--field-base);
+  --color-field-ink: var(--field-ink);
+  --color-field-muted: var(--field-muted);
+  --color-field-line: var(--field-line);
+  --color-field-hover: var(--field-hover);
+  --color-field-active: var(--field-active-bg);
+  --color-on-field-active: var(--field-active-ink);
+
+  /* Grade semantics — must match the grade strings ai_engine emits, and must
+     clear 4.5:1 in both themes (NFR-20). */
+  --color-grade-a: var(--grade-a);
+  --color-grade-b: var(--grade-b);
+  --color-grade-c: var(--grade-c);
+  --color-grade-reject: var(--grade-reject);
+
+  /* Isian tenang untuk badan penanda grade.
+   *
+   * Dihitung dari warna grade-nya sendiri, bukan ditulis sebagai delapan nilai
+   * heksadesimal: keduanya `light-dark()`, jadi campurannya ikut berpindah tema
+   * tanpa satu pun nilai kembar yang harus dijaga tetap sinkron. `on-viewfinder`
+   * menimpa `--grade-*` saja dan tint ini otomatis mengikuti. */
+  --color-grade-a-tint: color-mix(in srgb, var(--grade-a) 14%, var(--surface-raised));
+  --color-grade-b-tint: color-mix(in srgb, var(--grade-b) 14%, var(--surface-raised));
+  --color-grade-c-tint: color-mix(in srgb, var(--grade-c) 14%, var(--surface-raised));
+  --color-grade-reject-tint: color-mix(
+    in srgb,
+    var(--grade-reject) 14%,
+    var(--surface-raised)
+  );
+
+  /* Elevation (§7.4).
+   *
+   * `inline` because the composed value has to keep referencing the
+   * `--elev-*` colour tokens below: a shadow baked at build time cannot
+   * change with the theme, and a black shadow is literally invisible on a
+   * #0d0c0b canvas — which is how the dark theme ended up looking flat no
+   * matter how many elevation steps the scale claimed to have.
+   *
+   * Each step pairs a tight contact shadow with a wide ambient one. The
+   * `inset` hairline is the other half of the illusion: on dark surfaces
+   * depth reads from a lit top edge far more than from a shadow, and the
+   * token is fully transparent in light mode so it costs nothing there. */
+  --shadow-e1: 0 1px 2px var(--elev-contact),
+    inset 0 1px 0 var(--elev-hairline);
+  --shadow-e2: 0 1px 2px var(--elev-contact),
+    0 4px 12px -4px var(--elev-ambient), inset 0 1px 0 var(--elev-hairline);
+  --shadow-e3: 0 2px 4px -1px var(--elev-contact),
+    0 12px 28px -8px var(--elev-ambient), inset 0 1px 0 var(--elev-hairline);
+  --shadow-e4: 0 4px 8px -2px var(--elev-contact),
+    0 28px 56px -16px var(--elev-deep), inset 0 1px 0 var(--elev-hairline);
+}
+
+:root {
+  /* `light dark` lets light-dark() follow the OS; the [data-theme] rules below
+     pin it, which is how a manual toggle wins over the system preference. */
+  color-scheme: light dark;
+
+  /* Kanvas turun ke stone-100, kartu naik ke stone-50. Kartu terhadap kanvas
+     jadi 1,13:1 dan cekung terhadap kartu 1,23:1 — cukup untuk membedakan
+     lapisan tanpa garis, yang memungkinkan Card melepas `border` (§7.4). */
+  --surface-canvas: light-dark(#f2ede3, #0f0d0a);
+  --surface-raised: light-dark(#fcfbf8, #1e1b15);
+  --surface-overlay: light-dark(#ffffff, #3d382e);
+  --surface-sunken: light-dark(#eae3d7, #181511);
+
+  --text-primary: light-dark(#1e1b15, #fcfbf8);
+  --text-secondary: light-dark(#544d40, #b7a98f);
+  /* Eyebrow labels — teks informatif, jadi harus lolos 4.5:1 juga di atas
+     permukaan cekung, latar berkontras terendah yang pernah ia tempati
+     (NFR-20). Di ramp baru stone-600 lolos ketiganya (5,4 / 4,8 / 4,5). */
+  --text-tertiary: light-dark(#655c4e, #b7a98f);
+
+  --border-subtle: light-dark(#d8cebb, #3d382e);
+  --border-strong: light-dark(#b7a98f, #544d40);
+
+  /* green-500 (#338448) warna brand mark, tapi hanya 4,05:1 di atas kartu —
+     sebagai teks tautan *dan* sebagai isian tombol di bawah teks putih ia
+     gagal AA dua arah. Mode terang karena itu menjalankan interaksi dari
+     green-600 dan menyisakan green-500 untuk tint serta isian dekoratif,
+     tempat kontras bukan penanggung beban. */
+  --accent-primary: light-dark(#246634, #79b989);
+  --accent-hover: light-dark(#1a4d26, #a7d3b2);
+  --accent-deep: light-dark(#12361b, #d2ead8);
+  --accent-tint: light-dark(#eaf6ed, #12361b);
+  --accent-tint-strong: light-dark(#d2ead8, #1a4d26);
+  --accent-on: light-dark(#ffffff, #07120a);
+
+  --danger-primary: light-dark(#9a1c1c, #f08a8a);
+  --danger-tint: light-dark(#f7dcdc, #3a0f0f);
+
+  --grade-a: light-dark(#246634, #79b989);
+  /* Digelapkan dari sampel clay-500 (#b57c3b): grade B muncul sebagai isian
+     lencana di bawah teks terang *dan* sebagai teks status di atas permukaan
+     terang, jadi ia harus lolos AA dua arah — termasuk di atas sunken, tempat
+     clay-500 hanya mencapai 3,3:1. */
+  --grade-b: light-dark(#825726, #ddae78);
+  /* Karat, bukan oranye Tailwind: #c2410c yang lama jatuh ke 3,9:1 begitu
+     kanvas menghangat. */
+  --grade-c: light-dark(#9e3b0a, #f89962);
+  --grade-reject: light-dark(#9a1c1c, #f08a8a);
+
+  /* --- Bidang chrome (§7.1) ------------------------------------------------
+   *
+   * Nav dan bar adalah ladang hijau pekat, bukan kartu. Isinya karena itu tidak
+   * bisa memakai token teks biasa: `--text-primary` di atas green-700 adalah
+   * hitam di atas hijau tua. Keluarga sendiri, diverifikasi terhadap
+   * `--field-base` alih-alih terhadap permukaan. */
+  --field-base: light-dark(#1a4d26, #07120a);
+  --field-ink: #fcfbf8;
+  --field-muted: light-dark(#a7d3b2, #79b989);
+  --field-line: light-dark(rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.09));
+  --field-hover: light-dark(rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.07));
+  /* Tab aktif membalik polaritas: keping terang di atas ladang gelap. */
+  --field-active-bg: light-dark(#d2ead8, #a7d3b2);
+  --field-active-ink: light-dark(#1a4d26, #07120a);
+
+  /* Warna focus ring, dapat ditimpa per-konteks.
+   *
+   * Dulu `focus-ring` menyalakan `--accent-primary` langsung. Di atas ladang
+   * hijau itu green-600 di atas green-700 — 1,42:1, di bawah lantai 3:1 untuk
+   * penanda non-teks, artinya navigasi keyboard di chrome tak terlihat sama
+   * sekali (F-71). Sekarang utility membaca token ini, dan wadah hijau
+   * memindahkannya ke green-200 (5,3:1). */
+  --focus-color: var(--accent-primary);
+
+  /* Warna bayangan, bukan bayangan. Hangat alih-alih hitam murni di mode
+     terang supaya elevasi tidak terbaca sebagai noda abu di atas netral oat;
+     jauh lebih berat di mode gelap, tempat permukaan di bawahnya nyaris hitam
+     dan bayangan 6% tak bisa dibedakan dari nihil. */
+  --elev-contact: light-dark(rgb(61 56 46 / 0.09), rgb(0 0 0 / 0.5));
+  --elev-ambient: light-dark(rgb(61 56 46 / 0.12), rgb(0 0 0 / 0.55));
+  --elev-deep: light-dark(rgb(61 56 46 / 0.18), rgb(0 0 0 / 0.65));
+  /* Tepi atas yang tersorot. Mode terang dulu tidak punya — putih di atas
+     putih memang cuma derau. Sekarang kartu (#fcfbf8) duduk di atas kanvas
+     oat (#f2ede3), jadi tepi terang itu mengerjakan sesuatu. */
+  --elev-hairline: light-dark(rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.05));
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* ---------------------------------------------------------------------------
+   Typography scale (§7.3).
+
+   Prefixed `type-` rather than `text-` on purpose: `text-label`, `text-muted`
+   and friends are already colour utilities generated from the semantic tokens
+   above, and a name serving two meanings is a bug waiting to happen.
+
+   Each token carries its own desktop step so a heading does not need a `lg:`
+   twin at every call site.
+--------------------------------------------------------------------------- */
+@utility type-display-lg {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 48;
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+
+  @media (width >=48rem) {
+    font-size: 56px;
+    line-height: 60px;
+  }
+}
+
+@utility type-display-md {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 36;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+
+  @media (width >=48rem) {
+    font-size: 40px;
+    line-height: 46px;
+  }
+}
+
+@utility type-heading-lg {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 24;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+
+  @media (width >=48rem) {
+    font-size: 28px;
+    line-height: 36px;
+  }
+}
+
+/* Bricolage turun sampai ke sini.
+ *
+ * Sebelumnya face display berhenti di `heading-lg`, jadi hanya judul halaman
+ * yang memakainya — setiap judul kartu, setiap label bagian, seluruh teks isi
+ * adalah Inter. Layar kerja nyaris tidak punya `heading-lg`, jadi praktis
+ * seluruh dashboard petani diset dengan font UI paling umum yang ada, yang
+ * menyumbang besar ke keluhan "kelihatan AI". Fontnya sudah dimuat; menurunkan
+ * dua tingkat ini tidak menambah satu byte pun. */
+@utility type-heading-md {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 20;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+
+  @media (width >=48rem) {
+    font-size: 20px;
+    line-height: 28px;
+  }
+}
+
+@utility type-heading-sm {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 16;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+
+  @media (width >=48rem) {
+    line-height: 24px;
+  }
+}
+
+@utility type-body-lg {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+
+  @media (width >=48rem) {
+    line-height: 26px;
+  }
+}
+
+/* The floor for informative text on farmer-facing surfaces (F-70). */
+@utility type-body-md {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+
+  @media (width >=48rem) {
+    line-height: 22px;
+  }
+}
+
+@utility type-body-sm {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+
+  @media (width >=48rem) {
+    line-height: 18px;
+  }
+}
+
+@utility type-label {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@utility type-mono-sm {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+
+  @media (width >=48rem) {
+    font-size: 12px;
+    line-height: 18px;
+  }
+}
+
+/* Dipanggil tiga tempat (versi model, angka varians) tapi tidak pernah ada —
+   teksnya diam-diam jatuh ke 16px sans bawaan peramban. */
+@utility type-mono-md {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 18px;
+
+  @media (width >=48rem) {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+/* Tabular figures — stat tiles and money columns must not jitter as they
+   update or wobble when stacked in a table. */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   Interaction primitives
+--------------------------------------------------------------------------- */
+@utility tap {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out-soft),
+    opacity var(--dur-fast) var(--ease-out-soft),
+    background-color var(--dur-fast) var(--ease-out-soft),
+    border-color var(--dur-fast) var(--ease-out-soft),
+    /* Elevation animates too, otherwise a card that lifts on hover snaps its
+       shadow into place a frame ahead of the movement. */
+    box-shadow var(--dur-base) var(--ease-out-soft),
+    color var(--dur-fast) var(--ease-out-soft);
+}
+
+@utility tap-press {
+  &:active {
+    transform: scale(0.975);
+  }
+}
+
+/* Target sentuh 44×44 tanpa mengubah ukuran yang terlihat.
+ *
+ * Sebagian besar tombol tinggal diberi `min-h-11`. Yang tidak bisa adalah
+ * tautan teks yang tingginya ditentukan barisnya sendiri — menaikkannya akan
+ * merenggangkan baris tempat ia duduk — dan ikon kecil yang menempel di sudut
+ * benda lain. Untuk keduanya, yang perlu melar adalah area sentuhnya, bukan
+ * kotaknya: pseudo-elemen tak terlihat ini memusatkan bidang 44px pada
+ * elemennya, dan tetap sebesar elemen itu bila ia sudah lebih besar.
+ *
+ * Ia menangkap penunjuk, jadi jangan dipasang pada dua kontrol yang berjarak
+ * kurang dari 44px satu sama lain — yang belakangan akan tertimpa. */
+@utility hit-44 {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    translate: -50% -50%;
+  }
+}
+
+/* The single focus treatment for the whole system (F-71). Visible on both
+   themes because it rides a token, not a fixed colour — and visible on the
+   green chrome because that token is re-pointed there rather than hard-wired
+   to the accent. */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--focus-color);
+    outline-offset: 2px;
+  }
+}
+
+/* Dipasang di wadah mana pun yang latarnya `--field-base`. Anak-anaknya tetap
+   memakai `focus-ring` yang sama; yang berpindah cuma warnanya. */
+@utility on-field {
+  --focus-color: var(--color-green-200);
+}
+
+/* Kebalikannya, untuk wadah yang berpindah dari ladang ke permukaan oat pada
+   breakpoint tertentu — bilah atas hijau di ponsel, oat dari `md` ke atas.
+   Tanpa ini `on-field` yang menang di ponsel ikut terbawa ke desktop dan focus
+   ring green-200 tinggal 1,4:1 di atas kanvas oat. */
+@utility on-surface {
+  --focus-color: var(--accent-primary);
+}
+
+/* Jendela bidik kamera: permukaan yang gelap terus-menerus, tema apa pun yang
+   sedang dipilih.
+ *
+ * Isinya video panen, jadi tidak ada tema terang yang masuk akal di sini —
+ * tapi juga tidak boleh diisi literal warna satu per satu di markup, karena
+ * begitu itu terjadi layar ini berhenti ikut sistem. Yang dipasang di sini
+ * karena itu token dasarnya, bukan kelasnya: `text-ink`, `bg-canvas`,
+ * `bg-brand`, `bg-danger` dan kawan-kawan tetap ditulis apa adanya di markup
+ * dan otomatis memakai nilai gelapnya di dalam wadah ini.
+ *
+ * Kenapa bukan sekadar `color-scheme: dark`: seluruh token ditulis dengan
+ * `light-dark()` dan dideklarasikan di `:root`, dan `light-dark()` di dalam
+ * custom property diselesaikan terhadap `color-scheme` elemen yang
+ * *mendeklarasikan*-nya — bukan elemen yang memakainya. Menyetel color-scheme
+ * di wadah anak tidak mengubah satu token pun. Ia tetap dipasang karena daftar
+ * pilihan native `<select>` memang membacanya. */
+@utility on-viewfinder {
+  color-scheme: dark;
+
+  --surface-canvas: var(--color-stone-950);
+  --text-primary: var(--color-stone-50);
+  --text-secondary: var(--color-stone-400);
+  --accent-primary: var(--color-green-300);
+  /* Tidak ada ramp merah di `@theme`; nilainya disalin dari tema gelap. */
+  --danger-primary: #f08a8a;
+  --grade-a: var(--color-green-300);
+  --grade-b: var(--color-clay-300);
+  --focus-color: var(--color-green-200);
+
+  --elev-contact: rgb(0 0 0 / 0.5);
+  --elev-ambient: rgb(0 0 0 / 0.55);
+  --elev-deep: rgb(0 0 0 / 0.65);
+  --elev-hairline: rgb(255 255 255 / 0.05);
+}
+
+/* ---------------------------------------------------------------------------
+   Surface treatments
+
+   A gradient rather than a flat brand fill, and a *tint* gradient rather than a
+   saturated one: this surface carries ordinary body text, muted captions, and
+   eyebrow labels, all of which are tuned for contrast against a normal card. A
+   full-brand panel would force a second set of text tokens; the tint keeps the
+   luminance close enough to the plain surface that every existing token still
+   clears AA, in both themes, while the card still reads as the one object on
+   the screen that is not merely another white box.
+--------------------------------------------------------------------------- */
+@utility surface-brand {
+  background-image: linear-gradient(140deg,
+      var(--accent-tint) 0%,
+      var(--surface-raised) 62%);
+}
+
+/* Solid brand fill with a light source above it. Derived from the accent token
+   by `color-mix` rather than hard-coded stops, so it survives a re-point of the
+   brand colour and works in both themes — where the accent is light green and
+   the label on it is near-black, a lighter top still raises contrast rather
+   than lowering it. */
+@utility fill-brand {
+  background-image: linear-gradient(180deg,
+      /* 10%, not more: the top stop still has to clear 4.5:1 against the label
+       riding on it, and at 14% white it lands at 4.66:1 — passing, but with no
+       margin left for a future re-point of the accent. */
+      color-mix(in srgb, var(--accent-primary) 90%, #ffffff) 0%,
+      var(--accent-primary) 55%,
+      color-mix(in srgb, var(--accent-primary) 93%, #000000) 100%);
+}
+
+/* Warm twin, for states that are news rather than a task. */
+@utility surface-warn {
+  background-image: linear-gradient(140deg,
+      color-mix(in srgb, var(--grade-b) 12%, var(--surface-raised)) 0%,
+      var(--surface-raised) 62%);
+}
+
+/* Glassmorphism utilities.
+ *
+ * Putih murni sudah tidak dipakai lagi sebagai kaca: di atas kanvas oat ia
+ * terbaca dingin dan sedikit ungu. Kaca terang sekarang stone-50, kaca gelap
+ * stone-900/800 — sama seperti permukaan yang ditirunya.
+ *
+ * PENTING — blur TIDAK boleh ditulis di sini.
+ *
+ * Kelima utility ini dulu memuat `backdrop-filter: blur(...) saturate(...)`
+ * lengkap dengan kembaran `-webkit-`. Deklarasi itu tidak pernah sampai ke
+ * peramban: `backdrop-filter` yang ditulis di dalam `@utility` dibuang oleh
+ * pipeline Tailwind v4, sementara `background-color` dari aturan yang sama
+ * lolos. Jadi selama ini "glassmorphism" hanya latar semi-tembus tanpa blur
+ * sama sekali, dan tidak ada yang menyadarinya karena hasilnya tetap tampil —
+ * hanya datar. Diuji: utility berisi `backdrop-filter: blur(10px)` saja pun
+ * ikut hilang, sedangkan `backdrop-blur-md` bawaan Tailwind menghasilkan
+ * `blur(12px)` dengan benar.
+ *
+ * Karena itu blur dipasang di daftar kelas pemanggil dengan
+ * `backdrop-blur-* backdrop-saturate-*`. Kalau ada yang memindahkannya kembali
+ * ke sini, blur-nya akan hilang lagi tanpa satu pun peringatan build. */
+@utility glass {
+  background-color: light-dark(rgb(252 251 248 / 0.72), rgb(30 27 21 / 0.72));
+  border: 1px solid light-dark(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.08));
+  box-shadow: 0 8px 32px 0 light-dark(rgb(61 56 46 / 0.08), rgb(0 0 0 / 0.37)),
+              inset 0 1px 0 0 light-dark(rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.1));
+}
+
+@utility glass-panel {
+  background-color: light-dark(rgb(252 251 248 / 0.82), rgb(30 27 21 / 0.82));
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 12px 40px -10px light-dark(rgb(61 56 46 / 0.1), rgb(0 0 0 / 0.45)),
+              inset 0 1px 0 0 light-dark(rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.08));
+}
+
+@utility glass-overlay {
+  background-color: light-dark(rgb(255 255 255 / 0.9), rgb(61 56 46 / 0.9));
+  border: 1px solid light-dark(rgb(216 206 187 / 0.8), rgb(255 255 255 / 0.12));
+  box-shadow: 0 20px 50px -12px light-dark(rgb(61 56 46 / 0.18), rgb(0 0 0 / 0.6)),
+              inset 0 1px 0 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.12));
+}
+
+@utility glass-brand {
+  background-image: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent-tint) 70%, transparent) 0%,
+      light-dark(rgb(252 251 248 / 0.7), rgb(30 27 21 / 0.7)) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  box-shadow: 0 8px 32px 0 light-dark(rgb(36 102 52 / 0.1), rgb(0 0 0 / 0.4)),
+              inset 0 1px 0 0 light-dark(rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.12));
+}
+
+/* Bottom nav. Sejak chrome jadi ladang hijau, pil ini tidak lagi meniru kartu:
+   ia kaca berwarna di atas ladang, bukan kaca putih di atas kanvas.
+   0,94 dan bukan 0,88 karena pil ini melayang di atas apa pun yang kebetulan
+   sedang digulir — kartu putih, foto panen. Diukur terhadap latar terburuk
+   (putih murni) label green-200 hanya mencapai 4,22:1 di 0,88; di 0,94 ia
+   5,0:1. Kaca yang cantik tapi labelnya gagal AA bukan tawar-menawar. */
+@utility glass-pill {
+  background-color: light-dark(rgb(26 77 38 / 0.94), rgb(7 18 10 / 0.94));
+  border: 1px solid light-dark(rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.09));
+  box-shadow: 0 6px 24px 0 light-dark(rgb(18 54 27 / 0.28), rgb(0 0 0 / 0.5)),
+              inset 0 1px 0 0 light-dark(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.1));
+}
+
+/* Wide content scrolls inside its own box rather than widening the page
+   (F-78). */
+@utility scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes pantas-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility rise {
+  animation: pantas-rise var(--dur-slow) var(--ease-out-soft) both;
+}
+
+@keyframes pantas-sweep {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(400%);
+  }
+}
+
+@keyframes pantas-grow {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes pantas-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@utility float-slow {
+  animation: pantas-float 7s ease-in-out infinite;
+}
+
+@keyframes pantas-pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.06);
+  }
+}
+
+@utility pulse-glow {
+  animation: pantas-pulse-glow 9s ease-in-out infinite;
+}
+
+@keyframes pantas-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Price slider — brand-filled track, ringed thumb.
+ *
+ * Relnya 8px, tapi elemennya 44px: gradiennya dulu dilukis di `<input>` itu
+ * sendiri, jadi seluruh target sentuh setinggi rel — 8px, seperlima dari
+ * ambang 44px, dan satu-satunya cara petani menyetel harga jualnya. Sekarang
+ * gradien pindah ke pseudo-elemen relnya dan elemennya sendiri jadi bidang
+ * setinggi jempol yang tembus pandang. */
+.pantas-slider {
+  appearance: none;
+  height: 44px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+
+.pantas-slider::-webkit-slider-runnable-track,
+.pantas-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: linear-gradient(to right,
+      var(--accent-primary) var(--fill, 50%),
+      var(--accent-tint-strong) var(--fill, 50%));
+}
+
+.pantas-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  /* Setengah selisih tinggi thumb dan rel, supaya ia duduk di tengah rel
+     alih-alih menggantung di tepi atasnya. */
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 3px solid var(--surface-raised);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+}
+
+.pantas-slider::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 3px solid var(--surface-raised);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+}
+
+.pantas-slider:focus-visible::-webkit-slider-runnable-track,
+.pantas-slider:focus-visible::-moz-range-track {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+}
+
+/* Leaflet: keep the map under our sticky chrome. */
+.leaflet-container {
+  z-index: 0;
+  background: var(--surface-sunken);
+  font: inherit;
+}
+
+/* Kontrol zoom bawaan Leaflet 30×30. Peta ini dipakai satu tangan sambil
+   berdiri, jadi keduanya dinaikkan ke ambang yang sama dengan tombol lain di
+   aplikasi.
+
+   Selektornya diawali `.leaflet-container` semata-mata untuk menang atas
+   `.leaflet-touch .leaflet-bar a` milik leaflet.css: kekhususannya sama persis,
+   dan lembar itu dimuat dari `peta-map.tsx` — jadi ia datang belakangan dan
+   aturan yang identik kekhususannya akan kalah urutan. */
+.leaflet-container .leaflet-touch .leaflet-bar a,
+.leaflet-container.leaflet-touch .leaflet-bar a,
+.leaflet-container .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 20px;
+}
+
+.leaflet-control-attribution {
+  font-size: 9px;
+  background: var(--surface-raised) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* OSM raster tiles are light-only, so dim them rather than ship a second tile
+   provider just for dark mode. `filter` cannot ride a colour token, which is
+   why this one rule is duplicated across both dark signals. */
+:root[data-theme="dark"] .leaflet-tile-pane {
+  filter: brightness(0.78) saturate(0.85);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .leaflet-tile-pane {
+    filter: brightness(0.78) saturate(0.85);
+  }
+}
+/* ── Cetak ──────────────────────────────────────────────────────────────────
+   Lembar cetak (tanda terima serah terima, label peti) diportal ke <body>,
+   jadi ia selalu menjadi anak langsung body dan bisa disendirikan dengan satu
+   aturan: sembunyikan saudara-saudaranya.
+
+   Versi sebelumnya memakai `body * { visibility: hidden }` lalu memunculkan
+   kembali target cetaknya sebagai `position: absolute`. Targetnya berada di
+   dalam panel modal ber-`overflow: hidden` dan `max-height: 92dvh`, sehingga
+   isinya terpotong habis dan yang keluar dari printer adalah halaman kosong.
+   Di sini lembarannya tetap di aliran normal, jadi ia memecah halaman sendiri
+   seperti dokumen biasa. */
+@media print {
+  /* Margin halaman diserahkan ke printer, bukan ke padding elemen: padding
+     hanya berlaku di halaman pertama, sedangkan @page berlaku di setiap
+     halaman yang dipecah lembaran panjang. */
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body > *:not([data-print-root]) {
+    display: none !important;
+  }
+
+  [data-print-root] {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    display: block !important;
+    padding: 0 !important;
+    background: #fff !important;
+    backdrop-filter: none !important;
+  }
+
+  [data-print-root] [data-print-panel] {
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  [data-print-root] [data-print-sheet] {
+    overflow: visible !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  [data-print-hide] {
+    display: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Modern Web API & CSS Enhancements
+   - View Transitions API support for smooth MPA/SPA page switches
+   - Container Queries for responsive card components
+   - Content-visibility & containment optimizations
+--------------------------------------------------------------------------- */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.container-card {
+  container-type: inline-size;
+}
+
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 180px;
+}
+
+.modern-tap-target {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  touch-action: manipulation;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Siaran langsung — kabar dari seberang (lihat components/siaran-langsung.tsx)
+
+   Gerakannya sengaja pendek dan sekali jalan. Kartu ini muncul tanpa diminta,
+   di tengah pekerjaan orang lain; apa pun yang berdenyut terus di belakang teks
+   yang sedang dibaca berubah dari "menarik perhatian" jadi "menghalangi".
+
+   Aturan `prefers-reduced-motion` global di atas sudah memangkas semuanya jadi
+   0,01ms, jadi tidak ada satu pun animasi di sini yang perlu dijaga ulang.
+--------------------------------------------------------------------------- */
+
+@keyframes siaran-masuk-lembar {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes siaran-masuk-tirai {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes siaran-masuk-kartu {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Satu riak keluar dari lingkaran ikon, lalu hilang. */
+@keyframes siaran-cincin {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+.siaran-lembar {
+  animation: siaran-masuk-lembar 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.siaran-tirai {
+  animation: siaran-masuk-tirai 200ms ease-out both;
+}
+
+.siaran-kartu {
+  animation: siaran-masuk-kartu 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.siaran-cincin {
+  animation: siaran-cincin 900ms ease-out 120ms both;
+}

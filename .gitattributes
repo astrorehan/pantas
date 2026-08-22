@@ -1,0 +1,16 @@
+# Seluruh Markdown disimpan dan di-checkout dengan LF di semua sistem operasi.
+#
+# Alasannya konkret: docs/prd/** digenerate dari docs/PRD.md — header digenerate,
+# isi disalin apa adanya. Di checkout Windows (core.autocrlf=true) isi itu CRLF
+# sedangkan header LF, sehingga berkasnya bercampur. Git menggolongkan berkas
+# ber-EOL campuran sebagai biner, melewatkan normalisasi, dan CRLF ikut ter-commit.
+# Runner Linux lalu meregenerasi versi ber-LF dan `split-prd.mjs --check` gagal
+# untuk seluruh potongan meski isinya identik.
+*.md text eol=lf
+
+# Perkakas dokumentasi di scripts/ dieksekusi Node di Windows maupun Linux.
+*.mjs text eol=lf
+
+# Alur kerja CI dibaca runner Linux.
+*.yml text eol=lf
+*.yaml text eol=lf

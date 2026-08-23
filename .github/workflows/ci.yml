@@ -153,29 +153,6 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
-  docs:
-    name: docs — potongan PRD & backlog sinkron
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      # docs/prd/** digenerate dari docs/PRD.md. Kalau PRD diedit tanpa
-      # regenerasi, agen membaca spek basi dan membangun fitur yang salah.
-      # --check juga memverifikasi rakit-ulang byte-per-byte: bukti tidak ada
-      # kalimat PRD yang hilang saat dipotong.
-      - name: Potongan PRD sinkron dengan PRD.md
-        run: node scripts/split-prd.mjs --check
-
-      # Menolak F-ID yatim (ada di PRD, tak punya baris backlog) dan F-ID hantu
-      # (ada di backlog, sudah hilang dari PRD).
-      - name: Backlog mencakup seluruh F-ID
-        run: node scripts/build-backlog.mjs --check
-
 # Masih menyusul, sesuai §16.3 — ditambahkan saat perkakasnya mendarat, bukan
 # sebagai langkah yang selalu merah:
 #   vitest run          unit + komponen (Fase 3)

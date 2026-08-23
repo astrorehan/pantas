@@ -72,6 +72,21 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Jendela yang cukup tinggi untuk rel menempel.
+
+   Kolom `sticky` yang lebih tinggi dari viewport-nya adalah jebakan: bagian
+   bawahnya tidak pernah bisa digulir ke dalam pandangan, karena ia berhenti
+   ikut menggulir tepat saat pembacanya butuh melihat sisanya. Rel bukti pada
+   laporan grading memuat foto plus kartu vonis — sekitar 600px — jadi ia hanya
+   boleh menempel pada jendela yang memang punya ruang untuk itu.
+--------------------------------------------------------------------------- */
+@custom-variant jendela-tinggi {
+  @media (height >=800px) {
+    @slot;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Primitive scales — never referenced directly by components. Components use
    the semantic aliases further down so a token can be re-pointed in one place.
 --------------------------------------------------------------------------- */

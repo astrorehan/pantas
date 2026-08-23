@@ -146,7 +146,7 @@
   --dur-slow: 380ms;
 
   --font-display:
-    var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui,
+    var(--font-poppins), var(--font-inter), ui-sans-serif, system-ui,
     sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
@@ -357,7 +357,6 @@ body {
 --------------------------------------------------------------------------- */
 @utility type-display-lg {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 48;
   font-size: 34px;
   line-height: 40px;
   font-weight: 800;
@@ -371,7 +370,6 @@ body {
 
 @utility type-display-md {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 36;
   font-size: 28px;
   line-height: 34px;
   font-weight: 800;
@@ -385,7 +383,6 @@ body {
 
 @utility type-heading-lg {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 24;
   font-size: 22px;
   line-height: 28px;
   font-weight: 700;
@@ -397,17 +394,9 @@ body {
   }
 }
 
-/* Bricolage turun sampai ke sini.
- *
- * Sebelumnya face display berhenti di `heading-lg`, jadi hanya judul halaman
- * yang memakainya — setiap judul kartu, setiap label bagian, seluruh teks isi
- * adalah Inter. Layar kerja nyaris tidak punya `heading-lg`, jadi praktis
- * seluruh dashboard petani diset dengan font UI paling umum yang ada, yang
- * menyumbang besar ke keluhan "kelihatan AI". Fontnya sudah dimuat; menurunkan
- * dua tingkat ini tidak menambah satu byte pun. */
+/* Poppins untuk heading dan display titles */
 @utility type-heading-md {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 20;
   font-size: 18px;
   line-height: 24px;
   font-weight: 700;
@@ -421,7 +410,6 @@ body {
 
 @utility type-heading-sm {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 16;
   font-size: 16px;
   line-height: 22px;
   font-weight: 700;

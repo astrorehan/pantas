@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
 import { StoreProvider } from "@/lib/store";
 import { LocaleProvider } from "@/lib/i18n";
 import { SkipLink } from "@/components/skip-link";
@@ -27,28 +27,13 @@ const inter = Inter({
 });
 
 /**
- * Display face (§7.3). Variable across weight and optical size so headings can
- * be set tight and large without a second file, and distinctive enough that the
- * product does not read as another Inter-everywhere dashboard.
+ * Display face (§7.3). Poppins font for headings and titles.
  */
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-  // `optional`, bukan `swap`. Keduanya sengaja tidak dipreload (lihat catatan
-  // di atas), jadi keduanya tiba setelah cat pertama — dan `swap` menukar font
-  // judul saat itu, mengubah tinggi hero dan menggeser seluruh isi di bawahnya.
-  // Lighthouse mencatat `section#angka` di /tentang bergeser 0,058 dengan sebab
-  // "Web font loaded", di atas anggaran CLS 0,05 (NFR-04).
-  //
-  // `size-adjust` bawaan next/font hanya mendekatkan metrik fallback, tidak
-  // menyamakannya, jadi ia mengecilkan geseran tanpa menghilangkannya. Dengan
-  // `optional` peramban memakai fallback dan hanya menukar bila font sudah siap
-  // sebelum cat pertama — kunjungan berikutnya (font sudah di cache) tetap
-  // dapat wajah aslinya, kunjungan pertama tidak membayar dengan tata letak
-  // yang melompat. Preload tetap mati: menyalakannya menaikkan LCP ke ~3,5 s.
-  display: "optional",
-  axes: ["opsz"],
-  preload: false,
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 const jetbrains = JetBrains_Mono({
@@ -99,7 +84,7 @@ export default function RootLayout({
       lang="id"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${inter.variable} ${bricolage.variable} ${jetbrains.variable} h-full overflow-x-clip max-w-full`}
+      className={`${inter.variable} ${poppins.variable} ${jetbrains.variable} h-full overflow-x-clip max-w-full`}
     >
       <head>
         {/* Applies a pinned theme before first paint — see lib/theme.ts. */}

@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-# A second push to the same branch cancels the first â€” the free runner minutes
+# A second push to the same branch cancels the first — the free runner minutes
 # matter more than a complete history of red builds.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   web:
-    name: web â€” typecheck, lint, build
+    name: web — typecheck, lint, build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -32,7 +32,7 @@ jobs:
       # Menambah dependency dari Windows: `npm install` biasa menghasilkan lock
       # yang lolos lokal tapi gagal di sini dengan "EUSAGE ... Missing:
       # @emnapi/core@... from lock file". Peer dependency opsional milik paket
-      # wasm (sharp, tailwind oxide) disusun berbeda menurut DUA hal â€” platform
+      # wasm (sharp, tailwind oxide) disusun berbeda menurut DUA hal — platform
       # (runner ini Linux) dan versi npm (Node 22 membawa npm 10.9.8, sedangkan
       # npm 11 menyusun pohonnya lain). Keduanya harus dicocokkan:
       #   npx npm@10.9.8 install --package-lock-only --os=linux --cpu=x64
@@ -44,8 +44,8 @@ jobs:
 
       # The commodity list in the UI is generated from ai_engine/grading_configs.
       # A diff here means someone edited the generated file by hand, or added a
-      # config without regenerating â€” either way the UI would offer commodities
-      # the engine cannot grade (Â§13.3).
+      # config without regenerating — either way the UI would offer commodities
+      # the engine cannot grade (§13.3).
       - name: Generated commodity list is in sync
         run: |
           npm run gen:komoditas
@@ -64,11 +64,11 @@ jobs:
         run: npx tsc --noEmit
 
       # Also enforces the design-system guardrails: no 430px phone frame
-      # (F-76) and no Supabase imports outside the data/store seams (Â§12.3).
+      # (F-76) and no Supabase imports outside the data/store seams (§12.3).
       - name: Lint
         run: npx eslint
 
-      # Kelas Tailwind yang salah tulis tidak gagal â€” ia hilang diam-diam, jadi
+      # Kelas Tailwind yang salah tulis tidak gagal — ia hilang diam-diam, jadi
       # `bg-surface-raised` merender kartu transparan dan lolos sampai produksi.
       # Hanya pemeriksaan yang membandingkan pemakaian dengan globals.css yang
       # bisa menangkapnya.
@@ -93,7 +93,7 @@ jobs:
           echo "bundle klien bersih"
 
   perf:
-    name: perf â€” anggaran NFR-01..05
+    name: perf — anggaran NFR-01..05
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -111,7 +111,7 @@ jobs:
       # Menambah dependency dari Windows: `npm install` biasa menghasilkan lock
       # yang lolos lokal tapi gagal di sini dengan "EUSAGE ... Missing:
       # @emnapi/core@... from lock file". Peer dependency opsional milik paket
-      # wasm (sharp, tailwind oxide) disusun berbeda menurut DUA hal â€” platform
+      # wasm (sharp, tailwind oxide) disusun berbeda menurut DUA hal — platform
       # (runner ini Linux) dan versi npm (Node 22 membawa npm 10.9.8, sedangkan
       # npm 11 menyusun pohonnya lain). Keduanya harus dicocokkan:
       #   npx npm@10.9.8 install --package-lock-only --os=linux --cpu=x64
@@ -141,7 +141,7 @@ jobs:
       # `include-hidden-files` wajib: sejak upload-artifact v4.4 berkas di dalam
       # direktori berawalan titik dilewati diam-diam, dan `.lighthouseci/` persis
       # itu. Digabung `if-no-files-found: ignore`, langkah ini sempat mencetak
-      # "No files were found" lalu tetap hijau â€” jadi setiap PR sejak itu lulus
+      # "No files were found" lalu tetap hijau — jadi setiap PR sejak itu lulus
       # tanpa pernah melampirkan satu laporan pun. Sekarang ketiadaan berkas
       # membuat langkahnya gagal, supaya bukti yang hilang tidak lagi senyap.
       - name: Unggah laporan Lighthouse
@@ -153,10 +153,31 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
+  docs:
+    name: docs — potongan PRD & backlog sinkron
+    runs-on: ubuntu-latest
 
-# Masih menyusul, sesuai Â§16.3 â€” ditambahkan saat perkakasnya mendarat, bukan
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # docs/prd/** digenerate dari docs/PRD.md. Kalau PRD diedit tanpa
+      # regenerasi, agen membaca spek basi dan membangun fitur yang salah.
+      # --check juga memverifikasi rakit-ulang byte-per-byte: bukti tidak ada
+      # kalimat PRD yang hilang saat dipotong.
+      - name: Potongan PRD sinkron dengan PRD.md
+        run: node scripts/split-prd.mjs --check
+
+      # Menolak F-ID yatim (ada di PRD, tak punya baris backlog) dan F-ID hantu
+      # (ada di backlog, sudah hilang dari PRD).
+      - name: Backlog mencakup seluruh F-ID
+        run: node scripts/build-backlog.mjs --check
+
+# Masih menyusul, sesuai §16.3 — ditambahkan saat perkakasnya mendarat, bukan
 # sebagai langkah yang selalu merah:
 #   vitest run          unit + komponen (Fase 3)
-#   playwright test     alur emas G1â€“G5 (Â§17.1, Fase 2 item 17)
+#   playwright test     alur emas G1–G5 (§17.1, Fase 2 item 17)
 #   axe                 pemindaian aksesibilitas (F-96)
-

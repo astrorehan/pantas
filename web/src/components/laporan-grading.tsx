@@ -26,6 +26,24 @@ import type { Grade, LaporanGrading, ObjekGrading } from "@/lib/types";
 
 type BarisObjek = ObjekGrading & { foto?: number };
 
+/**
+ * Satu angka mentah di panel teknis.
+ *
+ * `prosa` menandai nilai yang berupa kalimat, bukan besaran — sumber faktor
+ * densitas adalah satu-satunya sekarang. Bedanya bukan gaya: kalimat yang
+ * dipepet ke kolom nilai rata-kanan memeras labelnya jadi dua baris dan
+ * memaksa `break-all` memotong kata di tengah huruf.
+ */
+type BarisTeknis = { k: string; v: string; prosa?: boolean };
+
+type GrupTeknis = {
+  judul: string;
+  desc: string;
+  /** Baris satu-baris yang memperlihatkan bagaimana angka di bawahnya dirangkai. */
+  rumus?: string;
+  baris: BarisTeknis[];
+};
+
 const KUNCI_GRADE: Record<Grade, string> = {
   A: "a",
   B: "b",
@@ -76,55 +94,61 @@ export function LaporanGradingView({
     ...new Set(objek.flatMap((o) => o.alasan_grade ?? [])),
   ].slice(0, 6);
 
-  const isi = (
-    <div className="flex min-w-0 flex-col gap-4">
-      {/* ------------------------------------------------------------ Vonis */}
-      <Card className="min-w-0 overflow-hidden p-5">
-        <SectionLabel>{judul ?? t("verdict_label")}</SectionLabel>
+  /* Vonis dipisah dari sisa laporan supaya ia bisa naik ke rel kiri bersama
+     fotonya pada tata letak dua kolom — lihat catatan di bawah. Pada tata
+     letak satu kolom ia tetap kartu pertama, jadi urutan bacanya tidak
+     berubah di ponsel maupun di layar banding. */
+  const vonis = (
+    <Card className="min-w-0 overflow-hidden p-5">
+      <SectionLabel>{judul ?? t("verdict_label")}</SectionLabel>
 
-        <div className="flex flex-wrap items-center gap-3 pt-3">
-          <GradeBadge grade={dominan} size="lg" />
-          <p className="type-body-md tnum font-bold text-ink">
-            {t("verdict_count", { n: nDominan, total })}
-          </p>
-        </div>
-
-        <p className="type-body-md pt-3 text-muted">
-          {t(`verdict_${KUNCI_GRADE[dominan]}`)}
+      <div className="flex flex-wrap items-center gap-3 pt-3">
+        <GradeBadge grade={dominan} size="lg" />
+        <p className="type-body-md tnum font-bold text-ink">
+          {t("verdict_count", { n: nDominan, total })}
         </p>
+      </div>
 
-        <GradeBar
-          komposisi={komposisi}
-          height={28}
-          showLegend={false}
-          className="pt-5"
-        />
+      <p className="type-body-md pt-3 text-muted">
+        {t(`verdict_${KUNCI_GRADE[dominan]}`)}
+      </p>
 
-        {/* Legenda ditulis sebagai jumlah butir, bukan persentase. Petani
-            memuat peti dengan butir; persennya turunan, dan menaruhnya lebih
-            dulu memaksa satu perkalian di kepala sebelum angkanya berguna. */}
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-2 pt-4 sm:grid-cols-4">
-          {jumlah.map(({ grade, n }) => (
-            <li key={grade} className="flex min-w-0 items-center gap-2">
-              <GradeMark grade={grade} className="size-3 shrink-0" />
-              <span className="type-body-sm min-w-0 flex-1 truncate text-muted">
-                {t(`short_${KUNCI_GRADE[grade]}`)}
-              </span>
-              <span className="type-body-md tnum shrink-0 font-bold text-ink">
-                {n}
-              </span>
-            </li>
-          ))}
-        </ul>
+      <GradeBar
+        komposisi={komposisi}
+        height={28}
+        showLegend={false}
+        className="pt-5"
+      />
 
-        {agregat && (
-          <p className="type-body-sm mt-4 flex gap-2 rounded-md bg-sunken p-3 text-muted">
-            <Layers aria-hidden className="size-4 shrink-0" />
-            {t("combined_note", { count: agregat.foto_terproses })}
-          </p>
-        )}
-      </Card>
+      {/* Legenda ditulis sebagai jumlah butir, bukan persentase. Petani
+          memuat peti dengan butir; persennya turunan, dan menaruhnya lebih
+          dulu memaksa satu perkalian di kepala sebelum angkanya berguna. */}
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-2 pt-4 sm:grid-cols-4">
+        {jumlah.map(({ grade, n }) => (
+          <li key={grade} className="flex min-w-0 items-center gap-2">
+            <GradeMark grade={grade} className="size-3 shrink-0" />
+            <span className="type-body-sm min-w-0 flex-1 truncate text-muted">
+              {t(`short_${KUNCI_GRADE[grade]}`)}
+            </span>
+            <span className="type-body-md tnum shrink-0 font-bold text-ink">
+              {n}
+            </span>
+          </li>
+        ))}
+      </ul>
 
+      {agregat && (
+        <p className="type-body-sm mt-4 flex gap-2 rounded-md bg-sunken p-3 text-muted">
+          <Layers aria-hidden className="size-4 shrink-0" />
+          {t("combined_note", { count: agregat.foto_terproses })}
+        </p>
+      )}
+    </Card>
+  );
+
+  /** Sisa laporan: berat, kalibrasi, alasan, teknis. */
+  const rincian = (
+    <div className="flex min-w-0 flex-col gap-4">
       {/* ------------------------------------------------- Perkiraan berat */}
       <KartuPerkiraanBerat estimasi={estimasi} />
 
@@ -157,17 +181,44 @@ export function LaporanGradingView({
     </div>
   );
 
-  if (!media) return isi;
+  if (!media)
+    return (
+      <div className="flex min-w-0 flex-col gap-4">
+        {vonis}
+        {rincian}
+      </div>
+    );
 
-  /* `min-w-0` bukan hiasan: tanpa itu tiap kolom grid memakai `min-width: auto`,
+  /* Vonis ikut ke rel kiri, dan itu soal ruang kosong, bukan selera.
+     Rel kiri sebelumnya hanya memuat foto 2:1 — pada jendela 1440px itu kotak
+     setinggi 280px yang menempel di atas kolom setinggi 2.000px, jadi sembilan
+     per sepuluh separuh kiri layar adalah kanvas kosong sementara kolom kanan
+     memanjang. Memindahkan kartu vonis ke sana mengisi rel itu dengan hal yang
+     memang ingin tetap terlihat saat pembacanya menggulir angka teknis di
+     kanan, dan sekaligus memendekkan kolom kanan.
+
+     `min-w-0` bukan hiasan: tanpa itu tiap kolom grid memakai `min-width: auto`,
      yang berarti lebar min-content anaknya. Tabel per objek punya min-content
      529px, jadi di layar 375px seluruh kolom melar ke 529px dan setiap kartu
      di dalamnya ikut keluar layar. Itulah yang membuat halaman ini terpotong
      di ponsel. */
   return (
     <div className="grid gap-4 lg:grid-cols-[42fr_58fr] lg:items-start">
-      <div className="min-w-0 lg:sticky lg:top-20">{media}</div>
-      {isi}
+      {/* Rel yang menempel harus dibatasi tingginya, bukan dibiarkan tumbuh.
+          Kolom `sticky` yang lebih tinggi dari viewport berhenti ikut menggulir
+          tepat ketika bagian bawahnya belum terlihat, dan pada layar hasil isi
+          rel ini bisa mencapai 800px (penggeser foto plus kartu vonis). Dengan
+          batas tinggi ia menggulir sendiri untuk sisa yang tidak muat. Bayangan
+          `shadow-e2` hanya melebar ~2px ke samping, jadi terpotongnya oleh
+          kotak gulir tidak terlihat. */}
+      <div className="flex min-w-0 flex-col gap-4 lg:jendela-tinggi:sticky lg:jendela-tinggi:top-20 lg:jendela-tinggi:max-h-[calc(100dvh-6rem)] lg:jendela-tinggi:overflow-y-auto">
+        {media}
+        {/* Di satu kolom vonis harus tetap kartu pertama sesudah foto, jadi
+            urutan DOM-nya sudah benar apa adanya — tidak ada `order` di sini
+            yang bisa memisahkan urutan baca dari urutan tampil. */}
+        {vonis}
+      </div>
+      {rincian}
     </div>
   );
 }
@@ -371,36 +422,77 @@ function DetailTeknis({
     },
   ];
 
-  const ukuran: { k: string; v: string }[] = [
+  /**
+   * Angka mentah, dikelompokkan menurut asalnya.
+   *
+   * Sebelumnya kedelapan baris duduk di satu daftar rata tanpa urutan yang
+   * bisa dijelaskan, jadi pembacanya harus tahu lebih dulu angka mana milik
+   * kalibrasi, mana milik perhitungan berat, dan mana yang sebenarnya bicara
+   * soal seberapa tervalidasi faktornya. Tiga kelompok berjudul menjawab itu
+   * tanpa menambah satu angka pun.
+   */
+  const grup: GrupTeknis[] = [
     {
-      k: t("tech_uniformity"),
-      v: persen(laporan.ringkasan_batch.skor_keseragaman),
+      judul: t("tech_group_scan"),
+      desc: t("tech_group_scan_desc"),
+      baris: [
+        {
+          k: t("tech_uniformity"),
+          v: persen(laporan.ringkasan_batch.skor_keseragaman),
+        },
+        ...("px_per_mm2" in laporan.kalibrasi
+          ? [
+              {
+                k: t("tech_px"),
+                v: `${num(laporan.kalibrasi.px_per_mm2, 2)} mm²/piksel`,
+              },
+            ]
+          : []),
+        ...(estimasi?.tersedia
+          ? [{ k: t("tech_area"), v: `${num(estimasi.luas_total_mm2, 0)} mm²` }]
+          : []),
+      ],
     },
   ];
-  if ("px_per_mm2" in laporan.kalibrasi) {
-    ukuran.push({
-      k: t("tech_px"),
-      v: `${num(laporan.kalibrasi.px_per_mm2, 2)} mm²/piksel`,
-    });
-  }
+
   if (estimasi?.tersedia) {
-    ukuran.push(
-      { k: t("tech_area"), v: `${num(estimasi.luas_total_mm2, 0)} mm²` },
-      {
-        k: t("tech_density"),
-        v: `${num(estimasi.faktor_gram_per_mm2, 4)} g/mm²`,
-      },
-      { k: t("tech_midpoint"), v: `${num(estimasi.kg, 2)} kg` },
-      {
-        k: t("tech_uncertainty"),
-        v: `±${persen(estimasi.rel_ketidakpastian)}`,
-      },
-      { k: t("tech_factor_source"), v: estimasi.sumber_faktor },
-      {
-        k: t("tech_calib_samples"),
-        v: String(estimasi.n_sampel_kalibrasi),
-      },
-    );
+    grup.push({
+      judul: t("tech_group_weight"),
+      desc: t("tech_group_weight_desc"),
+      /* Rumusnya ditulis apa adanya karena ia satu-satunya baris yang
+         menyambungkan ketiga angka di bawahnya; tanpa itu "0,0392 g/mm²" dan
+         "16,11 kg" terbaca sebagai dua fakta terpisah. Spasi di sekitar × dan =
+         disengaja: itu yang membuatnya boleh patah baris di layar 360px. */
+      rumus: `${num(estimasi.luas_total_mm2, 0)} mm² × ${num(
+        estimasi.faktor_gram_per_mm2,
+        4,
+      )} g/mm² = ${num(estimasi.kg, 2)} kg`,
+      baris: [
+        {
+          k: t("tech_density"),
+          v: `${num(estimasi.faktor_gram_per_mm2, 4)} g/mm²`,
+        },
+        { k: t("tech_midpoint"), v: `${num(estimasi.kg, 2)} kg` },
+        { k: t("tech_uncertainty"), v: `±${persen(estimasi.rel_ketidakpastian)}` },
+      ],
+    });
+
+    /* Kelompok ketiga, dan bukan demi kerapian: dari mana faktor densitas
+       berasal dan berapa kali ia sudah dikoreksi timbangan sungguhan adalah
+       pertanyaan tentang seberapa jauh angka di sebelahnya boleh dipercaya,
+       bukan tentang bagaimana ia dihitung. Memisahkannya juga membuat kedua
+       kolom pada tata letak lebar berakhir di ketinggian yang mirip. */
+    grup.push({
+      judul: t("tech_group_source"),
+      desc: t("tech_group_source_desc"),
+      baris: [
+        { k: t("tech_calib_samples"), v: String(estimasi.n_sampel_kalibrasi) },
+        // Kalimat, bukan angka: ia mendapat barisnya sendiri selebar kartu.
+        // Dipepet ke kolom nilai, ia memeras labelnya jadi dua baris dan
+        // terbaca sebagai angka tebal yang kebetulan berisi kata-kata.
+        { k: t("tech_factor_source"), v: estimasi.sumber_faktor, prosa: true },
+      ],
+    });
   }
 
   return (
@@ -420,28 +512,75 @@ function DetailTeknis({
         />
       </summary>
 
-      <div className="flex min-w-0 flex-col gap-4 border-t border-line p-4">
-        <dl className="type-body-sm grid grid-cols-[1fr_auto] gap-x-4 gap-y-2">
-          {ukuran.map(({ k, v }) => (
-            <div key={k} className="contents">
-              <dt className="min-w-0 text-muted">{k}</dt>
-              <dd className="tnum text-end font-bold break-all text-ink">{v}</dd>
-            </div>
-          ))}
-        </dl>
+      {/* Kueri wadah, bukan kueri jendela: panel ini duduk di kolom 58fr pada
+          halaman riwayat dan di kolom setengah lebar pada layar banding, jadi
+          lebar jendela tidak pernah memberitahu berapa ruang yang sebenarnya
+          ada di sini. */}
+      <div className="@container/teknis flex min-w-0 flex-col gap-4 border-t border-line p-4">
+        <div className="grid min-w-0 gap-4 @xl/teknis:grid-cols-2 @xl/teknis:gap-x-6">
+          {grup.map((g) => (
+            <section key={g.judul} className="min-w-0">
+              <SectionLabel>{g.judul}</SectionLabel>
+              <p className="type-body-sm pt-1 text-muted">{g.desc}</p>
 
-        {laporan.hash_audit && (
-          <div className="min-w-0 border-t border-line pt-3">
-            <SectionLabel>{t("tech_hash")}</SectionLabel>
-            <Link
-              href={`/lacak/${encodeURIComponent(laporan.hash_audit)}`}
-              className="type-mono-sm mt-1 flex items-center gap-2 break-all text-brand hover:underline"
-            >
-              <ShieldCheck aria-hidden className="size-4 shrink-0" />
-              {laporan.hash_audit}
-            </Link>
-          </div>
-        )}
+              {g.rumus && (
+                <p className="type-mono-sm mt-2 rounded-md border border-line px-3 py-2 text-ink">
+                  {g.rumus}
+                </p>
+              )}
+
+              <dl className="mt-2 flex min-w-0 flex-col divide-y divide-line rounded-md bg-sunken px-3">
+                {g.baris.map(({ k, v, prosa }) => (
+                  <div
+                    key={k}
+                    className={cx(
+                      "min-w-0 gap-x-4 py-2",
+                      prosa
+                        ? "flex flex-col gap-y-1"
+                        : "flex flex-wrap items-baseline justify-between",
+                    )}
+                  >
+                    <dt className="type-body-sm min-w-0 text-muted">{k}</dt>
+                    <dd
+                      className={cx(
+                        "type-body-sm min-w-0 text-ink",
+                        prosa ? "text-start" : "tnum text-end font-bold",
+                      )}
+                    >
+                      {v}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ))}
+
+          {/* Sidik audit ikut ke dalam kisi yang sama, bukan berdiri sendiri di
+              bawahnya. Ia berbentuk persis seperti kelompok lain — label,
+              satu kalimat, satu kotak — dan menaruhnya di sini mengisi sel
+              kanan-bawah yang tadinya kosong sepanjang 400px. */}
+          {laporan.hash_audit && (
+            <section className="min-w-0">
+              <SectionLabel>{t("tech_hash")}</SectionLabel>
+              <p className="type-body-sm pt-1 text-muted">{t("tech_hash_hint")}</p>
+              {/* `items-start`, bukan `items-center`: hash 64 karakter patah
+                  jadi dua atau tiga baris di ponsel, dan perisainya harus tetap
+                  di baris pertama alih-alih melayang di tengah blok. */}
+              <Link
+                href={`/lacak/${encodeURIComponent(laporan.hash_audit)}`}
+                className="focus-ring tap mt-2 flex min-w-0 items-start gap-2 rounded-md bg-sunken p-3 hover:bg-brand-tint"
+              >
+                <ShieldCheck
+                  aria-hidden
+                  className="mt-0.5 size-4 shrink-0 text-brand"
+                />
+                <span className="type-mono-sm min-w-0 break-all text-brand">
+                  {laporan.hash_audit}
+                </span>
+              </Link>
+            </section>
+          )}
+        </div>
 
         {objek.length > 0 && (
           <div className="min-w-0 border-t border-line pt-3">

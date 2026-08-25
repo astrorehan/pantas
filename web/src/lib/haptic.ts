@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 /**
  * Utilitas Haptic Feedback (Web Vibration API) — F-108.
@@ -154,52 +154,58 @@ export const haptic = {
   setEnabled: setHapticEnabled,
 };
 
+function subscribeHaptic(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(HAPTIC_CHANGE_EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(HAPTIC_CHANGE_EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function getHapticSnapshot(): boolean {
+  return getHapticEnabled();
+}
+
+function getServerHapticSnapshot(): boolean {
+  return true;
+}
+
+function getSupportedSnapshot(): boolean {
+  return isHapticSupported();
+}
+
+function getServerSupportedSnapshot(): boolean {
+  return false;
+}
+
 /**
  * Hook React untuk membaca status dukungan dan mengelola preferensi haptic pengguna.
  */
 export function useHaptic() {
-  const [supported, setSupported] = useState(false);
-  const [enabled, setEnabledState] = useState(true);
+  const enabled = useSyncExternalStore(
+    subscribeHaptic,
+    getHapticSnapshot,
+    getServerHapticSnapshot,
+  );
+  const supported = useSyncExternalStore(
+    subscribeHaptic,
+    getSupportedSnapshot,
+    getServerSupportedSnapshot,
+  );
 
-  useEffect(() => {
-    setSupported(isHapticSupported());
-    setEnabledState(getHapticEnabled());
-
-    const handleHapticChange = (e: Event) => {
-      const customEvent = e as CustomEvent<{ enabled: boolean }>;
-      if (customEvent.detail && typeof customEvent.detail.enabled === "boolean") {
-        setEnabledState(customEvent.detail.enabled);
-      } else {
-        setEnabledState(getHapticEnabled());
-      }
-    };
-
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === HAPTIC_STORAGE_KEY) {
-        setEnabledState(getHapticEnabled());
-      }
-    };
-
-    window.addEventListener(HAPTIC_CHANGE_EVENT, handleHapticChange);
-    window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener(HAPTIC_CHANGE_EVENT, handleHapticChange);
-      window.removeEventListener("storage", handleStorage);
-    };
-  }, []);
-
-  const setEnabled = (next: boolean) => {
-    setEnabledState(next);
+  const setEnabled = useCallback((next: boolean) => {
     setHapticEnabled(next);
     if (next) {
       // Sentuhan konfirmasi instan saat sakelar diaktifkan
       haptic.success();
     }
-  };
+  }, []);
 
-  const toggle = () => {
-    setEnabled(!enabled);
-  };
+  const toggle = useCallback(() => {
+    setEnabled(!getHapticEnabled());
+  }, [setEnabled]);
 
   return {
     isSupported: supported,

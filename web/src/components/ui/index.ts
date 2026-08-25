@@ -61,6 +61,7 @@ export type { TimelineEvent } from "./timeline";
 
 export { ThemeToggle } from "./theme-toggle";
 export { LocaleToggle } from "./locale-toggle";
+export { HapticToggle } from "./haptic-toggle";
 export { Toaster, toast } from "./toast";
 
 export {

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { haptic } from "@/lib/haptic";
 import { cx } from "./ui";
 import { Logo } from "./chrome";
 import { BERANDA, NAV, isActive } from "./nav-config";
@@ -116,6 +117,7 @@ function SideNav({ role }: { role: Role }) {
                       tetap cocok (WCAG 2.5.3).
                     */
                     aria-label={displayShort === displayLabel ? undefined : displayLabel}
+                    onClick={() => haptic.selection()}
                     className="group tap focus-ring flex flex-col items-center gap-1 rounded-md py-1.5"
                   >
                     {/*
@@ -234,6 +236,7 @@ export function BottomNav({ role }: { role: Role }) {
                       menyebut yang terlihat tetap cocok (WCAG 2.5.3).
                     */
                     aria-label={fullLabel}
+                    onClick={() => haptic.selection()}
                     className={cx(
                       "group absolute bottom-[24px] tap focus-ring flex h-[68px] w-[68px] items-center justify-center rounded-full transition-all duration-150 active:scale-75 hover:scale-105",
                       // Dulu isian brand bergradien. Di atas pil yang kini
@@ -271,6 +274,7 @@ export function BottomNav({ role }: { role: Role }) {
                   aria-current={active ? "page" : undefined}
                   data-tour={href}
                   aria-label={displayLabel === fullLabel ? undefined : fullLabel}
+                  onClick={() => haptic.selection()}
                   className="tap focus-ring flex flex-col items-center justify-end h-full gap-1 group"
                 >
                   <span
@@ -348,6 +352,21 @@ export function AppShell({
   role: Role;
   children: ReactNode;
 }) {
+  // Global tactile tap delegator for raw buttons, tabs, or tap elements without Button component
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const el = target.closest("button, [role='button'], a.tap, a.tap-press, .tap, .tap-press");
+      if (!el) return;
+      if (el.hasAttribute("disabled") || el.getAttribute("aria-disabled") === "true") return;
+      if (el.getAttribute("data-haptic-handled") === "true") return;
+      haptic.light();
+    };
+    window.addEventListener("click", handleGlobalClick, { capture: true, passive: true });
+    return () => window.removeEventListener("click", handleGlobalClick, { capture: true });
+  }, []);
+
   return (
     <div className="min-h-dvh bg-canvas w-full max-w-full overflow-x-clip relative">
       <SideNav role={role} />

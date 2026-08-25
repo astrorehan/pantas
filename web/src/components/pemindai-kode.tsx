@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CameraOff, ScanLine } from "lucide-react";
 import { Dialog } from "@/components/ui";
+import { haptic } from "@/lib/haptic";
 import { useTranslations } from "@/lib/i18n";
 
 /**
@@ -124,6 +125,7 @@ function IsiPemindai({ onKode }: { onKode: (kode: string) => void }) {
             const nilai = hasil[0]?.rawValue?.trim();
             if (nilai && !batal) {
               sudahKirim.current = true;
+              haptic.scan();
               onKode(nilai);
               return;
             }

@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import {
   Button,
   Card,
+  HapticToggle,
   LocaleToggle,
   SectionLabel,
   Sheet,
@@ -248,6 +249,11 @@ export default function AkunView({
                 <BarisKontrol
                   label={t("appearance")}
                   kontrol={<ThemeToggle />}
+                />
+                <BarisKontrol
+                  label={t("haptic")}
+                  keterangan={t("haptic_hint")}
+                  kontrol={<HapticToggle />}
                 />
                 <BarisKontrol
                   label={t("tour")}

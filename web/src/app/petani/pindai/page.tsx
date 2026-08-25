@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { cx } from "@/components/ui/cx";
+import { haptic } from "@/lib/haptic";
 import { KOMODITAS, labelKomoditas } from "@/lib/data";
 import type { FotoAntrean } from "@/lib/data";
 import { useStore } from "@/lib/store";
@@ -458,9 +459,11 @@ function Pindai() {
       // Kalimat, bukan kode galat. Yang perlu diketahui petani adalah apa yang
       // harus ia lakukan berbeda — bukan bahwa varians Laplacian fotonya
       // bernilai di bawah 12.
+      haptic.warning();
       setVetoAlert(t("veto_blur"));
       return;
     }
+    haptic.shutter();
     setVetoAlert(null);
     store.setLastCaptures(fotos, komoditas);
     setScanning(true);
@@ -504,8 +507,12 @@ function Pindai() {
     if (!langsung && antrean.length >= MAX_FOTO) return;
     const foto = await ambilDariSumber();
     if (!foto) return;
-    if (langsung) nilai([...antrean, foto]);
-    else setAntrean((a) => [...a, foto]);
+    if (langsung) {
+      nilai([...antrean, foto]);
+    } else {
+      haptic.selection();
+      setAntrean((a) => [...a, foto]);
+    }
   }
 
   function pakaiFile(file: File | undefined) {
@@ -522,6 +529,7 @@ function Pindai() {
       const skorBerkas = skorKetajaman(img, document.createElement("canvas"));
       if (skorBerkas !== null && zonaDari(skorBerkas) === "reject") {
         URL.revokeObjectURL(url);
+        haptic.warning();
         setVetoAlert(t("veto_blur"));
         return;
       }
@@ -530,8 +538,12 @@ function Pindai() {
       URL.revokeObjectURL(url);
       // Antrean kosong berarti petani memang hanya mengunggah satu foto;
       // menahannya di antrean cuma menambah satu ketukan tanpa alasan.
-      if (antrean.length === 0) nilai([foto]);
-      else if (antrean.length < MAX_FOTO) setAntrean((a) => [...a, foto]);
+      if (antrean.length === 0) {
+        nilai([foto]);
+      } else if (antrean.length < MAX_FOTO) {
+        haptic.selection();
+        setAntrean((a) => [...a, foto]);
+      }
     };
     img.src = url;
   }
@@ -544,6 +556,7 @@ function Pindai() {
    */
   function tekanRana() {
     if (tanpaContoh) {
+      haptic.light();
       fileRef.current?.click();
       return;
     }
@@ -844,9 +857,10 @@ function Pindai() {
                       />
                       <button
                         type="button"
-                        onClick={() =>
-                          setAntrean((a) => a.filter((_, j) => j !== i))
-                        }
+                        onClick={() => {
+                          haptic.light();
+                          setAntrean((a) => a.filter((_, j) => j !== i));
+                        }}
                         disabled={scanning}
                         aria-label={t("queue_remove", { index: i + 1 })}
                         className="tap focus-ring absolute -end-2 -top-2 flex size-6 items-center justify-center rounded-full bg-danger text-canvas"

@@ -9,6 +9,7 @@ import {
   hapusAntrean,
 } from "@/lib/antrean-offline";
 import { gradeBatch, gradeBatchMulti, gradeDominan, labelKomoditas } from "@/lib/data";
+import { haptic } from "@/lib/haptic";
 import { useStore } from "@/lib/store";
 import type { LaporanGrading } from "@/lib/types";
 import { useTranslations } from "@/lib/i18n";
@@ -96,6 +97,7 @@ export function AntreanOffline() {
         // akan mengubah jawabannya, jadi entri dibuang — tetapi petani harus
         // diberi tahu foto itu tidak jadi laporan.
         await hapusAntrean(entri.id);
+        haptic.error();
         toast.error(
           t("offline_queue_rejected", {
             commodity: labelKomoditas(entri.komoditas),
@@ -111,6 +113,7 @@ export function AntreanOffline() {
     }
 
     if (berhasil > 0) {
+      haptic.success();
       toast.success(
         t("offline_queue_processed", { count: berhasil }),
       );

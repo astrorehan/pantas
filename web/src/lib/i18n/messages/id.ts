@@ -398,7 +398,7 @@ export const idMessages = {
 
 
   landing: {
-    badge: "Smart Agroindustry & Logistic System",
+    badge: "Ketahanan Pangan & Pertanian Cerdas",
     hero_title_1: "Mutu panen dinilai dengan ",
     hero_title_accent: "ukuran",
     hero_title_2: ", bukan taksiran mata.",

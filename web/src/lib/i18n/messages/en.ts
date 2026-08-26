@@ -392,7 +392,7 @@ export const enMessages: Messages = {
 
 
   landing: {
-    badge: "Smart Agroindustry & Logistic System",
+    badge: "Smart Agriculture & Food Security",
     hero_title_1: "Harvest quality is measured by ",
     hero_title_accent: "size",
     hero_title_2: ", not by visual estimation.",

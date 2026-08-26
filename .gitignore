@@ -18,3 +18,6 @@ __pycache__/
 .venv/
 venv/
 supabase/.temp/
+.council/
+scripts/audit_competition.mjs
+scripts/migrate_incremental.ps1

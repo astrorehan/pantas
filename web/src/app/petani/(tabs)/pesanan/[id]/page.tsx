@@ -30,6 +30,7 @@ import { formatRupiah, num } from "@/lib/format";
 import { getPengirimanOrder, getUlasanPesanan } from "@/lib/data";
 import { checklistUntuk, ringkasChecklist } from "@/lib/rantai-dingin";
 import { bolehMenilai, lawanTransaksi } from "@/lib/ulasan";
+import { haptic } from "@/lib/haptic";
 import type { Pengiriman, StatusPesanan, Ulasan } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { ChatWindow } from "@/components/chat-window";
@@ -154,9 +155,11 @@ export default function PesananPetaniDetail() {
     (nilai: string) => {
       setShowPemindai(false);
       if (bersihkanKode(nilai) !== bersihkanKode(kodeBenar)) {
+        haptic.error();
         toast.galat(t("scan_mismatch"));
         return;
       }
+      haptic.success();
       setKode(nilai.toUpperCase());
       setGagal(false);
       toast.sukses(t("scan_filled"));
@@ -188,8 +191,11 @@ export default function PesananPetaniDetail() {
     );
     setGagal(!ok);
     if (ok) {
+      haptic.success();
       setKode("");
       setBeratAktual("");
+    } else {
+      haptic.error();
     }
   }
 
@@ -258,7 +264,10 @@ export default function PesananPetaniDetail() {
                   </p>
                   <div className="pt-4">
                     <Button
-                      onClick={() => store.setOrderStatus(order.id, "dikonfirmasi")}
+                      onClick={() => {
+                        haptic.success();
+                        store.setOrderStatus(order.id, "dikonfirmasi");
+                      }}
                       variant="primary"
                       size="lg"
                       block
@@ -301,6 +310,7 @@ export default function PesananPetaniDetail() {
                     </div>
                     <Button
                       onClick={() => {
+                        haptic.medium();
                         store.setOrderStatus(order.id, "serah_terima");
                         router.push(
                           pengiriman

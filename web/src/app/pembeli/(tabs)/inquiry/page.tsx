@@ -18,6 +18,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { formatRupiah } from "@/lib/format";
+import { haptic } from "@/lib/haptic";
 import { useStore } from "@/lib/store";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -39,9 +40,9 @@ export default function InquiryPage() {
   const items = Object.values(store.inquiry);
 
   const total = items.reduce((s, x) => s + x.qty * x.listing.harga_per_kg, 0);
-
   const handleKirim = async () => {
     setLoading(true);
+    haptic.success();
     await store.buatPenawaran(tanggalAmbil, catatan);
     setLoading(false);
     setModalOpen(false);
@@ -102,7 +103,10 @@ export default function InquiryPage() {
                           label={t("remove_item", { name: listing.nama })}
                           variant="ghost"
                           size="sm"
-                          onClick={() => store.setInquiryQty(listing, 0)}
+                          onClick={() => {
+                            haptic.light();
+                            store.setInquiryQty(listing, 0);
+                          }}
                           className="border-transparent bg-transparent text-label hover:text-danger"
                         >
                           <Trash2 aria-hidden className="size-4" />
@@ -114,9 +118,10 @@ export default function InquiryPage() {
                           <IconButton
                             label={t("reduce_10")}
                             size="sm"
-                            onClick={() =>
-                              store.setInquiryQty(listing, qty - 10)
-                            }
+                            onClick={() => {
+                              haptic.selection();
+                              store.setInquiryQty(listing, qty - 10);
+                            }}
                           >
                             <Minus aria-hidden className="size-4" />
                           </IconButton>
@@ -126,15 +131,16 @@ export default function InquiryPage() {
                           <IconButton
                             label={t("add_10")}
                             size="sm"
-                            onClick={() =>
+                            onClick={() => {
+                              haptic.selection();
                               store.setInquiryQty(
                                 listing,
                                 Math.min(
                                   listing.stok_kg ?? listing.berat_kg,
                                   qty + 10,
                                 ),
-                              )
-                            }
+                              );
+                            }}
                           >
                             <Plus aria-hidden className="size-4" />
                           </IconButton>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { BackBar } from "@/components/chrome";
 import { tambahAntrean } from "@/lib/antrean-offline";
+import { haptic } from "@/lib/haptic";
 import { Container } from "@/components/container";
 import { LaporanGradingView } from "@/components/laporan-grading";
 import {
@@ -313,10 +314,12 @@ export default function HasilPage() {
           fotos: captures,
         });
         await store.refreshAntreanPindai();
+        haptic.warning();
         if (!cancelled) setAntre({ alasan, jumlah: captures.length });
       } catch {
         // IndexedDB tidak tersedia: lebih baik menyatakan kegagalannya apa
         // adanya daripada menjanjikan antrean yang tidak pernah ada.
+        haptic.error();
         if (!cancelled)
           setMuatan({
             mode: "tunggal",
@@ -361,6 +364,7 @@ export default function HasilPage() {
   useEffect(() => {
     if (!laporan || kosong || recorded.current) return;
     recorded.current = true;
+    haptic.success();
     const dominan = gradeDominan(laporan.ringkasan_batch.komposisi);
     store.addScan({
       komoditas_label: komoditasLabel,
@@ -371,6 +375,18 @@ export default function HasilPage() {
       hasil: laporan, // dipersistenkan ke tabel gradings (hash_audit ikut tersimpan)
     });
   }, [laporan, kosong, store, komoditasLabel, captures.length]);
+
+  // Umpan balik taktil kesalahan jika evaluasi grading gagal / objek kosong
+  useEffect(() => {
+    if (!muatan || muatan.mode === "kosong" || muatan.mode === "tersimpan") return;
+    if (
+      kosong ||
+      (muatan.mode === "tunggal" && muatan.hasil.status === "error") ||
+      (muatan.mode === "multi" && muatan.multi.agregat.status === "error")
+    ) {
+      haptic.error();
+    }
+  }, [muatan, kosong]);
 
   const bar = (
     <BackBar

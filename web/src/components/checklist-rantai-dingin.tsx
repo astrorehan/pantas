@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Loader2, Snowflake } from "lucide-react";
 import { Card, Checkbox, cx } from "@/components/ui";
 import { toast } from "@/components/ui/toast";
+import { haptic } from "@/lib/haptic";
 import { simpanChecklistPengiriman } from "@/lib/data";
 import {
   checklistUntuk,
@@ -40,8 +41,13 @@ export function ChecklistRantaiDingin({
   const persen = Math.round((ringkas.selesai / ringkas.total) * 100);
 
   async function ubah(id: string, nilai: boolean) {
+    haptic.selection();
     const sebelumnya = tercentang;
     const baru = { ...tercentang, [id]: nilai };
+    const ringkasBaru = ringkasChecklist(baru, daftar);
+    if (ringkasBaru.lengkap) {
+      haptic.success();
+    }
     setTercentang(baru);
     setMenyimpan(true);
     const { error } = await simpanChecklistPengiriman(pengirimanId, baru);

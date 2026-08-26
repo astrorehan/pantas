@@ -24,6 +24,7 @@ import { Button, EmptyState, GradeBadge, Input, CommodityIcon, Sheet, cx } from 
 import { Container } from "@/components/container";
 import { formatRupiah, num } from "@/lib/format";
 import { jarakKm, keTitik, urutTerdekat, type Titik } from "@/lib/jarak";
+import { haptic } from "@/lib/haptic";
 import { useStore } from "@/lib/store";
 import { useTranslations } from "@/lib/i18n";
 import type { Messages } from "@/lib/i18n/messages/id";
@@ -694,12 +695,13 @@ export default function Katalog({ listings }: { listings: Listing[] }) {
                           : "border-brand/30 bg-brand-tint/50 text-brand-dark hover:bg-brand hover:text-canvas hover:border-brand"
                       )}
                       aria-label={added ? `${t("btn_inquiry_added")}: ${l.nama}` : `${t("btn_inquiry_add")}: ${l.nama}`}
-                      onClick={() =>
+                      onClick={() => {
+                        haptic.selection();
                         store.setInquiryQty(
                           l,
                           added ? 0 : Math.min(stokKg, 50),
-                        )
-                      }
+                        );
+                      }}
                     >
                       {added ? (
                         <>

@@ -20,6 +20,7 @@ import {
   type PenilaianSampel,
 } from "@/lib/kekuatan-sampel";
 import { formatAngka, formatRupiah, num, persen } from "@/lib/format";
+import { haptic } from "@/lib/haptic";
 import { useStore, type PublishInput } from "@/lib/store";
 import { useTranslations } from "@/lib/i18n";
 import type { Grade, RekomendasiHarga } from "@/lib/types";
@@ -256,6 +257,7 @@ export default function HargaForm({
             ),
           }));
 
+    haptic.success();
     store.publishListings(lots, gradingId);
     router.push("/petani/listing-tayang");
   }

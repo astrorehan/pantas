@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, MouseEvent, ReactNode } from "react";
+import { haptic } from "@/lib/haptic";
 import { cx } from "./cx";
 
 export type ButtonVariant =
@@ -12,6 +15,18 @@ export type ButtonVariant =
   | "danger-ghost";
 
 export type ButtonSize = "sm" | "md" | "lg" | "xl";
+
+export type HapticTrigger =
+  | boolean
+  | "selection"
+  | "light"
+  | "medium"
+  | "heavy"
+  | "shutter"
+  | "scan"
+  | "success"
+  | "warning"
+  | "error";
 
 /**
  * Backgrounds ride semantic tokens, so a variant needs no dark-mode twin.
@@ -94,6 +109,28 @@ function base(
   );
 }
 
+function triggerButtonHaptic(
+  hapticFeedback: HapticTrigger | undefined,
+  variant: ButtonVariant,
+  iconOnly: boolean,
+) {
+  if (hapticFeedback === false) return;
+  if (
+    typeof hapticFeedback === "string" &&
+    typeof haptic[hapticFeedback] === "function"
+  ) {
+    haptic[hapticFeedback]();
+    return;
+  }
+  if (iconOnly) {
+    haptic.selection();
+  } else if (variant === "primary" || variant === "danger") {
+    haptic.medium();
+  } else {
+    haptic.light();
+  }
+}
+
 /** Inline spinner. Sized in `em` so it tracks whatever text size it sits in. */
 function Spinner() {
   return (
@@ -110,6 +147,8 @@ export function Button({
   block = false,
   loading = false,
   iconOnly = false,
+  hapticFeedback = true,
+  onClick,
   className,
   children,
   disabled,
@@ -122,12 +161,23 @@ export function Button({
   loading?: boolean;
   /** Square button holding a single icon — still needs an `aria-label`. */
   iconOnly?: boolean;
+  /** Respon taktil saat tombol diklik (bawaan: true). */
+  hapticFeedback?: HapticTrigger;
 }) {
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+    if (!disabled && !loading) {
+      triggerButtonHaptic(hapticFeedback, variant, iconOnly);
+    }
+    onClick?.(e);
+  };
+
   return (
     <button
       type="button"
       disabled={disabled || loading}
       aria-busy={loading || undefined}
+      onClick={handleClick}
+      data-haptic-handled="true"
       className={cx(base(variant, size, block, iconOnly), className)}
       {...rest}
     >
@@ -142,6 +192,8 @@ export function ButtonLink({
   size = "md",
   block = false,
   iconOnly = false,
+  hapticFeedback = true,
+  onClick,
   className,
   children,
   ...rest
@@ -150,9 +202,18 @@ export function ButtonLink({
   size?: ButtonSize;
   block?: boolean;
   iconOnly?: boolean;
+  /** Respon taktil saat link tombol diklik (bawaan: true). */
+  hapticFeedback?: HapticTrigger;
 }) {
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    triggerButtonHaptic(hapticFeedback, variant, iconOnly);
+    onClick?.(e);
+  };
+
   return (
     <Link
+      onClick={handleClick}
+      data-haptic-handled="true"
       className={cx(base(variant, size, block, iconOnly), className)}
       {...rest}
     >
@@ -169,6 +230,7 @@ export function IconButton({
   label,
   variant = "ghost",
   size = "md",
+  hapticFeedback = "selection",
   className,
   children,
   ...rest
@@ -176,6 +238,7 @@ export function IconButton({
   label: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
+  hapticFeedback?: HapticTrigger;
   children: ReactNode;
 }) {
   return (
@@ -185,6 +248,7 @@ export function IconButton({
       variant={variant}
       size={size}
       iconOnly
+      hapticFeedback={hapticFeedback}
       className={className}
       {...rest}
     >

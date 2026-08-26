@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Star, Loader2 } from "lucide-react";
 import { Button, Dialog, SectionLabel, Textarea } from "@/components/ui";
+import { haptic } from "@/lib/haptic";
 import { kirimUlasan } from "@/lib/data";
 import { toast } from "@/components/ui/toast";
 import { useTranslations } from "@/lib/i18n";
@@ -46,6 +47,7 @@ export function RatingModal({
       });
 
       if (ulasan) {
+        haptic.success();
         toast.sukses(t("toast_success", { name: dinilaiNama }));
         if (onSuccess) onSuccess();
         onClose();
@@ -53,10 +55,12 @@ export function RatingModal({
         // Kalimat dari lapisan data, bukan "gagal" generik: penolakan yang
         // paling sering terjadi — sudah pernah menilai — punya jalan keluar
         // yang berbeda dari kegagalan jaringan.
+        haptic.error();
         toast.galat(error ?? t("toast_error_default"));
         if (error?.includes("sudah menilai") && onSuccess) onSuccess();
       }
     } catch {
+      haptic.error();
       toast.galat(t("toast_error_generic"));
     } finally {
       setSubmitting(false);
@@ -96,7 +100,10 @@ export function RatingModal({
                   role="radio"
                   aria-checked={star === bintang}
                   aria-label={`${star} bintang`}
-                  onClick={() => setBintang(star)}
+                  onClick={() => {
+                    haptic.selection();
+                    setBintang(star);
+                  }}
                   onMouseEnter={() => setHoverBintang(star)}
                   onMouseLeave={() => setHoverBintang(0)}
                   className="tap focus-ring rounded-sm p-1 transition-transform hover:scale-110"

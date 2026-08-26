@@ -72,6 +72,21 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Jendela yang cukup tinggi untuk rel menempel.
+
+   Kolom `sticky` yang lebih tinggi dari viewport-nya adalah jebakan: bagian
+   bawahnya tidak pernah bisa digulir ke dalam pandangan, karena ia berhenti
+   ikut menggulir tepat saat pembacanya butuh melihat sisanya. Rel bukti pada
+   laporan grading memuat foto plus kartu vonis — sekitar 600px — jadi ia hanya
+   boleh menempel pada jendela yang memang punya ruang untuk itu.
+--------------------------------------------------------------------------- */
+@custom-variant jendela-tinggi {
+  @media (height >=800px) {
+    @slot;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Primitive scales — never referenced directly by components. Components use
    the semantic aliases further down so a token can be re-pointed in one place.
 --------------------------------------------------------------------------- */
@@ -146,7 +161,7 @@
   --dur-slow: 380ms;
 
   --font-display:
-    var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui,
+    var(--font-poppins), var(--font-inter), ui-sans-serif, system-ui,
     sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
@@ -357,7 +372,6 @@ body {
 --------------------------------------------------------------------------- */
 @utility type-display-lg {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 48;
   font-size: 34px;
   line-height: 40px;
   font-weight: 800;
@@ -371,7 +385,6 @@ body {
 
 @utility type-display-md {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 36;
   font-size: 28px;
   line-height: 34px;
   font-weight: 800;
@@ -385,7 +398,6 @@ body {
 
 @utility type-heading-lg {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 24;
   font-size: 22px;
   line-height: 28px;
   font-weight: 700;
@@ -397,17 +409,9 @@ body {
   }
 }
 
-/* Bricolage turun sampai ke sini.
- *
- * Sebelumnya face display berhenti di `heading-lg`, jadi hanya judul halaman
- * yang memakainya — setiap judul kartu, setiap label bagian, seluruh teks isi
- * adalah Inter. Layar kerja nyaris tidak punya `heading-lg`, jadi praktis
- * seluruh dashboard petani diset dengan font UI paling umum yang ada, yang
- * menyumbang besar ke keluhan "kelihatan AI". Fontnya sudah dimuat; menurunkan
- * dua tingkat ini tidak menambah satu byte pun. */
+/* Poppins untuk heading dan display titles */
 @utility type-heading-md {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 20;
   font-size: 18px;
   line-height: 24px;
   font-weight: 700;
@@ -421,7 +425,6 @@ body {
 
 @utility type-heading-sm {
   font-family: var(--font-display);
-  font-variation-settings: "opsz" 16;
   font-size: 16px;
   line-height: 22px;
   font-weight: 700;

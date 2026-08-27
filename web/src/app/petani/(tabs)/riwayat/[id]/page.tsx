@@ -4,24 +4,37 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { FileSearch, ImageOff, ShoppingBag, Trash2, Loader2 } from "lucide-react";
 import { BackBar } from "@/components/chrome";
 import { Container } from "@/components/container";
-import { LaporanGradingView } from "@/components/laporan-grading";
-import {
-  ButtonLink,
-  Button,
-  Card,
-  EmptyState,
-  Skeleton,
-  Dialog,
-} from "@/components/ui";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getGradingDetail, hrefJualLaporan, hapusRiwayatGrading } from "@/lib/data";
 import type { RiwayatItem } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import type { LaporanGrading } from "@/lib/types";
 import { useTranslations } from "@/lib/i18n";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
+
+const LaporanGradingView = dynamic(
+  () => import("@/components/laporan-grading").then((m) => m.LaporanGradingView),
+  {
+    loading: () => (
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    ),
+  },
+);
+
+const Dialog = dynamic(
+  () => import("@/components/ui/dialog").then((m) => m.Dialog),
+  { ssr: false },
+);
 
 /**
  * `dariDb` memisahkan laporan yang punya baris `gradings` sungguhan dari
@@ -66,11 +79,11 @@ export default function RiwayatDetailPage() {
     const hasilHapus = await hapusRiwayatGrading(id);
     if (hasilHapus === "ok") {
       store.hapusScan(id);
-      toast.success(t("delete_success"));
+      toast.sukses(t("delete_success"));
       router.replace("/petani/riwayat");
       return;
     }
-    toast.error(hasilHapus === "terkunci" ? t("delete_locked") : t("delete_error"));
+    toast.galat(hasilHapus === "terkunci" ? t("delete_locked") : t("delete_error"));
     setIsDeleting(false);
     setHapusDialogOpen(false);
   }
@@ -251,29 +264,31 @@ export default function RiwayatDetailPage() {
         </Container>
       </main>
 
-      <Dialog
-        open={hapusDialogOpen}
-        onClose={() => {
-          if (!isDeleting) setHapusDialogOpen(false);
-        }}
-        title={t("confirm_delete_title")}
-        description={t("confirm_delete_desc")}
-        size="sm"
-        footer={
-          <>
-            <Button
-              variant="ghost"
-              onClick={() => setHapusDialogOpen(false)}
-              disabled={isDeleting}
-            >
-              {t("btn_cancel")}
-            </Button>
-            <Button variant="danger" onClick={jalankanHapus} disabled={isDeleting}>
-              {isDeleting ? t("btn_deleting") : t("btn_delete")}
-            </Button>
-          </>
-        }
-      />
+      {hapusDialogOpen && (
+        <Dialog
+          open={true}
+          onClose={() => {
+            if (!isDeleting) setHapusDialogOpen(false);
+          }}
+          title={t("confirm_delete_title")}
+          description={t("confirm_delete_desc")}
+          size="sm"
+          footer={
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => setHapusDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                {t("btn_cancel")}
+              </Button>
+              <Button variant="danger" onClick={jalankanHapus} disabled={isDeleting}>
+                {isDeleting ? t("btn_deleting") : t("btn_delete")}
+              </Button>
+            </>
+          }
+        />
+      )}
     </>
   );
 }

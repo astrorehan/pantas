@@ -65,7 +65,6 @@ def test_komposisi_dalam_toleransi(model, baris: dict):
     gambar = cv2.imread(str(berkas))
     if gambar is None:
         pytest.skip(f"Foto set regresi tidak dapat dibaca: {berkas.name}")
-
     hasil, _ = model.predict(gambar, baris["komoditas"])
     assert hasil["status"] == "success", hasil.get("message")
 

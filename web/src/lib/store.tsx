@@ -24,7 +24,6 @@ import {
   type FotoAntrean,
   type PesanBelumDibaca,
 } from "./data";
-import { DEMO_PENAWARAN } from "./demo-data";
 import { AKUN_DEMO, DEMO_PASSWORD, DEMO_USERS } from "./demo";
 import { hitungAntrean } from "./antrean-offline";
 import { FAKTOR_EMISI_BAWAAN, type FaktorEmisi } from "./emisi";
@@ -335,8 +334,35 @@ function filterOrdersForUser(orders: Order[], sesi: Sesi | null): Order[] {
 const DEMO_PENAWARAN_KEY = "pantas-demo-penawaran-v1";
 const PENAWARAN_SYNC_CHANNEL_NAME = "pantas-penawaran-sync-channel";
 
+const DEFAULT_DEMO_PENAWARAN: Penawaran[] = [
+  {
+    id: "PNW-001",
+    listing_id: "PNT-L-0401",
+    pembeli_id: "b0000000-0000-4000-b000-000000000001",
+    petani_id: "a0000000-0000-4000-a000-000000000001",
+    kuantitas_kg: 150,
+    harga_per_kg: 4100,
+    status: "terkirim",
+    created_at: "2026-08-25T10:00:00.000Z",
+    pembeli_nama: "Rina Pradita (CV Saus Nusantara)",
+    petani_nama: "Pak Warsono",
+  },
+  {
+    id: "PNW-002",
+    listing_id: "PNT-L-0422",
+    pembeli_id: "b0000000-0000-4000-b000-000000000001",
+    petani_id: "a0000000-0000-4000-a000-000000000003",
+    kuantitas_kg: 50,
+    harga_per_kg: 11000,
+    status: "ditawar_balik",
+    created_at: "2026-08-24T10:00:00.000Z",
+    pembeli_nama: "Rina Pradita (CV Saus Nusantara)",
+    petani_nama: "Bu Karsih",
+  },
+];
+
 function getStoredDemoPenawaran(): Penawaran[] {
-  if (typeof window === "undefined") return DEMO_PENAWARAN;
+  if (typeof window === "undefined") return DEFAULT_DEMO_PENAWARAN;
   try {
     const raw = localStorage.getItem(DEMO_PENAWARAN_KEY);
     if (raw) {
@@ -345,9 +371,9 @@ function getStoredDemoPenawaran(): Penawaran[] {
     }
   } catch {}
   try {
-    localStorage.setItem(DEMO_PENAWARAN_KEY, JSON.stringify(DEMO_PENAWARAN));
+    localStorage.setItem(DEMO_PENAWARAN_KEY, JSON.stringify(DEFAULT_DEMO_PENAWARAN));
   } catch {}
-  return DEMO_PENAWARAN;
+  return DEFAULT_DEMO_PENAWARAN;
 }
 
 function saveStoredDemoPenawaran(penawaran: Penawaran[]) {

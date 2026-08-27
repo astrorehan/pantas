@@ -15,27 +15,33 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { BrandBar } from "@/components/chrome";
 import { Container } from "@/components/container";
+import { cx } from "@/components/ui/cx";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { GradeBadge } from "@/components/ui/grade";
+import { SectionLabel } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const GradeBar = dynamic(
+  () => import("@/components/ui/grade").then((m) => m.GradeBar),
+  { ssr: false },
+);
+
+const Dialog = dynamic(
+  () => import("@/components/ui/dialog").then((m) => m.Dialog),
+  { ssr: false },
+);
+
+const PanelFilter = dynamic(() => import("./panel-filter"), {
+  ssr: false,
+});
+
 import {
-  Badge,
-  Button,
-  ButtonLink,
-  Card,
-  Dialog,
-  EmptyState,
-  GradeBadge,
-  GradeBar,
-  Input,
-  SectionLabel,
-  Select,
-  Skeleton,
-  cx,
-} from "@/components/ui";
-import { FilterSheet } from "@/components/ui/filter-sheet";
-import type { SelectOption } from "@/components/ui";
-import {
-  KOMODITAS,
   URUT_GRADE,
   getRiwayatGrading,
   getCachedRiwayatGrading,
@@ -46,7 +52,7 @@ import { persen } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Grade } from "@/lib/types";
 import { useLocale, useTranslations } from "@/lib/i18n";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 const PER_HALAMAN = 12;
 
@@ -121,31 +127,15 @@ export default function RiwayatPage() {
       /* Menghapus isi terakhir sebuah halaman meninggalkan halaman kosong yang
          tidak punya tombol apa pun untuk keluar darinya. */
       if (items?.length === 1 && halaman > 1) setHalaman((h) => h - 1);
-      toast.success(t("delete_success"));
+      toast.sukses(t("delete_success"));
     } else if (hasilHapus === "terkunci") {
-      toast.error(t("delete_locked"));
+      toast.galat(t("delete_locked"));
     } else {
-      toast.error(t("delete_error"));
+      toast.galat(t("delete_error"));
     }
     setIsDeleting(null);
     setHapusDialogTarget(null);
   }
-
-  const opsiKomoditas: SelectOption[] = useMemo(
-    () => [
-      { value: "", label: t("opt_all_komoditas") },
-      ...KOMODITAS.map((k) => ({ value: k.id, label: k.label, group: k.kelompok })),
-    ],
-    [t],
-  );
-
-  const opsiGrade: SelectOption[] = useMemo(
-    () => [
-      { value: "", label: t("opt_all_grade") },
-      ...URUT_GRADE.map((g) => ({ value: g, label: `Grade ${g}` })),
-    ],
-    [t],
-  );
 
   const cadangan: RiwayatItem[] = useMemo(
     () =>
@@ -240,8 +230,14 @@ export default function RiwayatPage() {
     return out;
   }, [items, locale, t]);
 
-  function ubahFilter(set: (v: string) => void, nilai: string) {
-    set(nilai);
+  function onUbahFilter(
+    key: "komoditas" | "grade" | "dari" | "sampai",
+    val: string,
+  ) {
+    if (key === "komoditas") setKomoditas(val);
+    else if (key === "grade") setGrade(val);
+    else if (key === "dari") setDari(val);
+    else if (key === "sampai") setSampai(val);
     setHalaman(1);
   }
 
@@ -268,6 +264,10 @@ export default function RiwayatPage() {
   const filterAktif = [komoditas, grade, dari, sampai].filter(Boolean);
   const adaFilter = filterAktif.length > 0;
   const bisaBanding = (items?.length ?? cadangan.length) >= 2;
+  const komoditasLabel =
+    items?.find((s) => s.komoditas === komoditas)?.komoditas_label ??
+    cadangan.find((s) => s.komoditas === komoditas)?.komoditas_label ??
+    komoditas;
 
   return (
     <>
@@ -301,42 +301,15 @@ export default function RiwayatPage() {
                   </Button>
                 )}
 
-                <FilterSheet
+                <PanelFilter
                   jumlahAktif={filterAktif.length}
                   onReset={resetFilter}
-                  description={t("filter_desc")}
-                >
-                  <Select
-                    id="f-komoditas"
-                    label={t("filter_komoditas")}
-                    value={komoditas}
-                    onChange={(v) => ubahFilter(setKomoditas, v)}
-                    options={opsiKomoditas}
-                  />
-                  <Select
-                    id="f-grade"
-                    label={t("filter_grade")}
-                    value={grade}
-                    onChange={(v) => ubahFilter(setGrade, v)}
-                    options={opsiGrade}
-                  />
-                  <Input
-                    id="f-dari"
-                    type="date"
-                    label={t("filter_dari")}
-                    value={dari}
-                    max={sampai || undefined}
-                    onChange={(e) => ubahFilter(setDari, e.target.value)}
-                  />
-                  <Input
-                    id="f-sampai"
-                    type="date"
-                    label={t("filter_sampai")}
-                    value={sampai}
-                    min={dari || undefined}
-                    onChange={(e) => ubahFilter(setSampai, e.target.value)}
-                  />
-                </FilterSheet>
+                  komoditas={komoditas}
+                  grade={grade}
+                  dari={dari}
+                  sampai={sampai}
+                  onUbahFilter={onUbahFilter}
+                />
               </div>
             </div>
 
@@ -365,33 +338,30 @@ export default function RiwayatPage() {
             <ul className="flex flex-wrap items-center gap-2">
               {komoditas && (
                 <PilFilter
-                  teks={
-                    opsiKomoditas.find((o) => o.value === komoditas)?.label ??
-                    komoditas
-                  }
-                  hapus={t("filter_remove", { teks: komoditas })}
-                  onHapus={() => ubahFilter(setKomoditas, "")}
+                  teks={komoditasLabel}
+                  hapus={t("filter_remove", { teks: komoditasLabel })}
+                  onHapus={() => onUbahFilter("komoditas", "")}
                 />
               )}
               {grade && (
                 <PilFilter
                   teks={`Grade ${grade}`}
                   hapus={t("filter_remove", { teks: `Grade ${grade}` })}
-                  onHapus={() => ubahFilter(setGrade, "")}
+                  onHapus={() => onUbahFilter("grade", "")}
                 />
               )}
               {dari && (
                 <PilFilter
                   teks={t("filter_from", { tanggal: dari })}
                   hapus={t("filter_remove", { teks: dari })}
-                  onHapus={() => ubahFilter(setDari, "")}
+                  onHapus={() => onUbahFilter("dari", "")}
                 />
               )}
               {sampai && (
                 <PilFilter
                   teks={t("filter_until", { tanggal: sampai })}
                   hapus={t("filter_remove", { teks: sampai })}
-                  onHapus={() => ubahFilter(setSampai, "")}
+                  onHapus={() => onUbahFilter("sampai", "")}
                 />
               )}
             </ul>
@@ -544,33 +514,35 @@ export default function RiwayatPage() {
         </Container>
       </main>
 
-      <Dialog
-        open={hapusDialogTarget !== null}
-        onClose={() => {
-          if (!isDeleting) setHapusDialogTarget(null);
-        }}
-        title={t("confirm_delete_title")}
-        description={t("confirm_delete_desc")}
-        size="sm"
-        footer={
-          <>
-            <Button
-              variant="ghost"
-              onClick={() => setHapusDialogTarget(null)}
-              disabled={isDeleting !== null}
-            >
-              {t("btn_cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              onClick={jalankanHapus}
-              disabled={isDeleting !== null}
-            >
-              {isDeleting ? t("btn_deleting") : t("btn_delete")}
-            </Button>
-          </>
-        }
-      />
+      {hapusDialogTarget !== null && (
+        <Dialog
+          open={true}
+          onClose={() => {
+            if (!isDeleting) setHapusDialogTarget(null);
+          }}
+          title={t("confirm_delete_title")}
+          description={t("confirm_delete_desc")}
+          size="sm"
+          footer={
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => setHapusDialogTarget(null)}
+                disabled={isDeleting !== null}
+              >
+                {t("btn_cancel")}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={jalankanHapus}
+                disabled={isDeleting !== null}
+              >
+                {isDeleting ? t("btn_deleting") : t("btn_delete")}
+              </Button>
+            </>
+          }
+        />
+      )}
     </>
   );
 }

@@ -88,6 +88,7 @@ export function rowToListing(r: ListingRow): Listing {
     // ke gradings dan tetap null untuk listing tanpa pindaian.
     hash_audit: r.hash_audit ?? undefined,
     grading_id: r.grading_id ?? undefined,
+    status: (r.status as Listing["status"]) ?? "tayang",
   };
 }
 
@@ -1554,6 +1555,116 @@ export async function getChecklistUntukHash(hash: string): Promise<{
     : null;
 }
 
+export const DEMO_PENAWARAN_KEY = "pantas-demo-penawaran-v1";
+export const DEMO_PESAN_KEY = "pantas-demo-pesan-v1";
+export const PENAWARAN_SYNC_CHANNEL_NAME = "pantas-penawaran-sync-channel";
+export const CHAT_SYNC_CHANNEL_NAME = "pantas-chat-sync-channel";
+
+export async function getStoredDemoPenawaran(): Promise<Penawaran[]> {
+  const { DEMO_PENAWARAN } = await bahanDemo();
+  if (typeof window === "undefined") return DEMO_PENAWARAN;
+  try {
+    const raw = localStorage.getItem(DEMO_PENAWARAN_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed as Penawaran[];
+    }
+  } catch {}
+  try {
+    localStorage.setItem(DEMO_PENAWARAN_KEY, JSON.stringify(DEMO_PENAWARAN));
+  } catch {}
+  return DEMO_PENAWARAN;
+}
+
+export function saveStoredDemoPenawaran(penawaran: Penawaran[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DEMO_PENAWARAN_KEY, JSON.stringify(penawaran));
+  } catch {}
+}
+
+let penawaranSyncChannelInstance: BroadcastChannel | null = null;
+export function getPenawaranSyncChannel(): BroadcastChannel | null {
+  if (typeof window === "undefined" || !("BroadcastChannel" in window)) return null;
+  try {
+    penawaranSyncChannelInstance ??= new BroadcastChannel(PENAWARAN_SYNC_CHANNEL_NAME);
+    return penawaranSyncChannelInstance;
+  } catch {
+    return null;
+  }
+}
+
+export function broadcastPenawaranSync(msg: {
+  type: "PENAWARAN_UPDATED" | "PENAWARAN_CREATED";
+  penawaran: Penawaran;
+}) {
+  try {
+    getPenawaranSyncChannel()?.postMessage(msg);
+  } catch {}
+}
+
+export async function updateSingleDemoPenawaran(updated: Penawaran) {
+  const all = await getStoredDemoPenawaran();
+  const index = all.findIndex((p) => p.id === updated.id);
+  let next: Penawaran[];
+  if (index >= 0) {
+    next = all.map((p) => (p.id === updated.id ? { ...p, ...updated } : p));
+  } else {
+    next = [updated, ...all];
+  }
+  saveStoredDemoPenawaran(next);
+  broadcastPenawaranSync({ type: "PENAWARAN_UPDATED", penawaran: updated });
+}
+
+export async function getStoredDemoPesan(): Promise<Pesan[]> {
+  const { DEMO_PESAN } = await bahanDemo();
+  if (typeof window === "undefined") return DEMO_PESAN;
+  try {
+    const raw = localStorage.getItem(DEMO_PESAN_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed as Pesan[];
+    }
+  } catch {}
+  try {
+    localStorage.setItem(DEMO_PESAN_KEY, JSON.stringify(DEMO_PESAN));
+  } catch {}
+  return DEMO_PESAN;
+}
+
+export function saveStoredDemoPesan(pesanList: Pesan[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DEMO_PESAN_KEY, JSON.stringify(pesanList));
+  } catch {}
+}
+
+let chatSyncChannelInstance: BroadcastChannel | null = null;
+export function getChatSyncChannel(): BroadcastChannel | null {
+  if (typeof window === "undefined" || !("BroadcastChannel" in window)) return null;
+  try {
+    chatSyncChannelInstance ??= new BroadcastChannel(CHAT_SYNC_CHANNEL_NAME);
+    return chatSyncChannelInstance;
+  } catch {
+    return null;
+  }
+}
+
+export function broadcastChatSync(msg: { type: "PESAN_BARU"; pesan: Pesan }) {
+  try {
+    getChatSyncChannel()?.postMessage(msg);
+  } catch {}
+}
+
+export async function tambahDemoPesan(pesan: Pesan) {
+  const all = await getStoredDemoPesan();
+  if (!all.some((p) => p.id === pesan.id)) {
+    const next = [...all, pesan];
+    saveStoredDemoPesan(next);
+  }
+  broadcastChatSync({ type: "PESAN_BARU", pesan });
+}
+
 export async function getPenawaranList(role: "petani" | "pembeli", uid: string): Promise<Penawaran[]> {
   const supabase = await getSupabase();
   if (supabase) {
@@ -1562,9 +1673,8 @@ export async function getPenawaranList(role: "petani" | "pembeli", uid: string):
     if (!error && data) return data as unknown as Penawaran[];
   }
   await delay(150);
-  // Demo mode returns hardcoded offers, we assume uid matches demo user ids.
-  const { DEMO_PENAWARAN } = await bahanDemo();
-  return DEMO_PENAWARAN.filter(p => role === "petani" ? p.petani_id === uid : p.pembeli_id === uid);
+  const all = await getStoredDemoPenawaran();
+  return all.filter((p) => (role === "petani" ? p.petani_id === uid : p.pembeli_id === uid));
 }
 
 /**
@@ -1952,7 +2062,13 @@ export async function getPesanList(params: { order_id?: string; penawaran_id?: s
 
   await delay(100);
   const { DEMO_PESAN } = await bahanDemo();
-  return DEMO_PESAN.filter(
+  const stored = await getStoredDemoPesan();
+  const map = new Map<string, Pesan>();
+  for (const p of DEMO_PESAN) map.set(p.id, p);
+  for (const p of stored) map.set(p.id, p);
+  const all = Array.from(map.values());
+
+  return all.filter(
     (p) => (params.order_id && p.order_id === params.order_id) || (params.penawaran_id && p.penawaran_id === params.penawaran_id)
   );
 }
@@ -1977,6 +2093,7 @@ export async function kirimPesan(pesan: Omit<Pesan, "id" | "created_at" | "dibac
   };
   const { DEMO_PESAN } = await bahanDemo();
   DEMO_PESAN.push(newPesan);
+  await tambahDemoPesan(newPesan);
   return newPesan;
 }
 
@@ -1984,7 +2101,24 @@ export function subscribePesan(
   filter: { order_id?: string; penawaran_id?: string },
   onNewMessage: (pesan: Pesan) => void
 ): () => void {
-  if (!isSupabaseConfigured) return () => {};
+  if (!isSupabaseConfigured) {
+    const channel = getChatSyncChannel();
+    if (!channel) return () => {};
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "PESAN_BARU" && e.data.pesan) {
+        const msg = e.data.pesan as Pesan;
+        const matchOrder = filter.order_id && msg.order_id === filter.order_id;
+        const matchPenawaran = filter.penawaran_id && msg.penawaran_id === filter.penawaran_id;
+        if (matchOrder || matchPenawaran) {
+          onNewMessage(msg);
+        }
+      }
+    };
+    channel.addEventListener("message", handler);
+    return () => {
+      channel.removeEventListener("message", handler);
+    };
+  }
 
   // Klien Supabase dimuat dinamis, jadi kanalnya baru ada satu tick kemudian.
   // Pemanggil tetap menerima fungsi lepas-langganan yang sinkron: kalau effect
@@ -2316,7 +2450,7 @@ async function siapkanAuthRealtime(
 export function langgananBaris(opts: {
   /** Nama kanal, dipakai juga di pesan galat. */
   nama: string;
-  tabel: "orders" | "penawaran";
+  tabel: "orders" | "penawaran" | "listings" | "pengiriman" | "rute";
   uid: string;
   /** Kolom pemilik yang difilter; satu kanal, satu `.on` per kolom. */
   kolom: readonly string[];

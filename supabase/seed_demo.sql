@@ -199,14 +199,33 @@ declare
   v_label   text;
   v_gambar  text;
   v_objek   integer;
+  v_demo_orders text[];
 begin
   v_demo := array[v_warsono, v_karsih, v_rahman, v_budi, v_sedayu, v_rina];
 
-  -- Urutan penting: orders ber-FK ke listings, dan penawaran ber-FK ke
-  -- keduanya. `penawaran` dihapus lebih dulu dan secara eksplisit: FK-nya ke
-  -- orders adalah `on delete set null`, jadi menghapus pesanan lebih dulu
-  -- meninggalkan penawaran berstatus 'diterima' tanpa pesanan — persis keadaan
-  -- cacat yang diperbaiki migrasi 0017, dibangkitkan ulang oleh reset sendiri.
+  perform set_config('pantas.demo_reset', 'on', true);
+
+  -- Kumpulkan pesanan demo untuk dibersihkan tabel turunannya terlebih dahulu
+  select array_agg(id) into v_demo_orders
+  from public.orders
+  where petani_id = any(v_demo) or pembeli_id = any(v_demo);
+
+  if v_demo_orders is not null and array_length(v_demo_orders, 1) > 0 then
+    delete from public.ulasan where order_id = any(v_demo_orders);
+    delete from public.pesan where order_id = any(v_demo_orders);
+    delete from public.order_kode where order_id = any(v_demo_orders);
+    delete from public.rute_item where pengiriman_id in (
+      select id from public.pengiriman where order_id = any(v_demo_orders)
+    );
+    delete from public.pengiriman where order_id = any(v_demo_orders);
+    delete from public.pesanan_riwayat where order_id = any(v_demo_orders);
+  end if;
+
+  -- Hapus pesan yang terkait dengan penawaran demo
+  delete from public.pesan where penawaran_id in (
+    select id from public.penawaran where petani_id = any(v_demo) or pembeli_id = any(v_demo)
+  );
+
   delete from public.penawaran where petani_id = any(v_demo) or pembeli_id = any(v_demo);
   delete from public.orders   where petani_id = any(v_demo) or pembeli_id = any(v_demo);
   delete from public.gradings where petani_id = any(v_demo);

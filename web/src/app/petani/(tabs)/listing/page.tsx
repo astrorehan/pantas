@@ -111,12 +111,19 @@ function ListingSaya() {
   }, [fokus, store.myListings.length]);
 
   /**
-   * Satu angka, dan alasannya jelas: inilah yang petani tawar-menawarkan.
+   * Satu angka, dan alasannya jelas: inilah yang petani tawar-menawarkan. */
+  function normalisasiStatus(s?: string): StatusLot {
+    if (s === "ditutup" || s === "dijeda" || s === "disembunyikan") return "dijeda";
+    if (s === "habis" || s === "terjual") return "terjual";
+    return "tayang";
+  }
+
+  /*
    * Omzet pesanan selesai pindah ke `/petani/dampak`, tempat angka riwayat
    * memang tinggal; jumlah tawaran sudah punya badge di tab Penawaran.
    */
   const lotTayang = store.myListings.filter(
-    (l) => (l.status ?? "tayang") === "tayang",
+    (l) => normalisasiStatus(l.status) === "tayang",
   );
   const nilaiTayang = lotTayang.reduce(
     (acc, l) => acc + l.harga_per_kg * l.berat_kg,
@@ -125,7 +132,7 @@ function ListingSaya() {
   const stokTayang = lotTayang.reduce((acc, l) => acc + l.berat_kg, 0);
 
   const filteredListings = store.myListings.filter((l) => {
-    const status = (l.status ?? "tayang") as StatusLot;
+    const status = normalisasiStatus(l.status);
     if (statusFilter !== "semua" && status !== statusFilter) return false;
     if (gradeFilter !== "semua" && l.grade !== gradeFilter) return false;
     if (searchQuery.trim()) {
@@ -262,7 +269,7 @@ function ListingSaya() {
           ) : (
             <ul className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
               {filteredListings.map((l) => {
-                const status = (l.status ?? "tayang") as StatusLot;
+                const status = normalisasiStatus(l.status);
                 const disorot = l.id === fokus;
                 const campuran =
                   URUT_GRADE.filter((g) => (l.komposisi?.[g] ?? 0) > 0).length > 1;

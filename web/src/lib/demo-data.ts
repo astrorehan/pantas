@@ -185,6 +185,8 @@ export const DEMO_PENAWARAN: Penawaran[] = [
     catatan: "Mohon dikemas dalam peti kayu, truk kami ambil jam 09.00.",
     status: "terkirim",
     created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+    pembeli_nama: "Rina Pradita (CV Saus Nusantara)",
+    petani_nama: "Pak Warsono",
   },
   {
     id: "PNW-002",
@@ -200,6 +202,8 @@ export const DEMO_PENAWARAN: Penawaran[] = [
     catatan: "Minta kurang sedikit harganya Pak, volume lumayan.",
     status: "ditawar_balik",
     created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
+    pembeli_nama: "Rina Pradita (CV Saus Nusantara)",
+    petani_nama: "Bu Karsih",
   }
 ];
 
@@ -207,34 +211,44 @@ export const DEMO_PESAN: Pesan[] = [
   {
     id: "MSG-001",
     order_id: "PNT-0101",
-    pengirim_id: "demo-pembeli-id",
-    penerima_id: "demo-petani-id",
+    pengirim_id: "b0000000-0000-4000-b000-000000000001",
+    penerima_id: "a0000000-0000-4000-a000-000000000001",
     isi: "Halo Pak Warsono, apakah panen tomat sudah siap dijemput besok pagi?",
     dibaca: true,
     created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    pengirim_nama: "PT Indofood Agritama",
+    pengirim_nama: "Rina Pradita (CV Saus Nusantara)",
   },
   {
     id: "MSG-002",
-    order_id: "PNT-0101",
-    pengirim_id: "demo-petani-id",
-    penerima_id: "demo-pembeli-id",
-    isi: "Siap Pak! Tomat Grade A sudah dipak dalam peti berventilasi. Penjemputan jam 08.30 WIB sangat cocok.",
+    order_id: "PNT-0501",
+    pengirim_id: "b0000000-0000-4000-b000-000000000001",
+    penerima_id: "a0000000-0000-4000-a000-000000000001",
+    isi: "Halo Pak Warsono, apakah panen tomat sudah siap dijemput besok pagi?",
+    dibaca: true,
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+    pengirim_nama: "Rina Pradita (CV Saus Nusantara)",
+  },
+  {
+    id: "MSG-003",
+    order_id: "PNT-0501",
+    pengirim_id: "a0000000-0000-4000-a000-000000000001",
+    penerima_id: "b0000000-0000-4000-b000-000000000001",
+    isi: "Siap Bu Rina! Tomat Grade B sudah dipak dalam peti berventilasi. Penjemputan jam 08.30 WIB sangat cocok.",
     dibaca: true,
     created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
-    pengirim_nama: "Warsono (Petani)",
+    pengirim_nama: "Pak Warsono",
   },
 ];
 
 export const DEMO_ULASAN: Ulasan[] = [
   {
     id: "ULS-001",
-    order_id: "PNT-0099",
-    penilai_id: "demo-pembeli-id",
-    dinilai_id: "demo-petani-id",
+    order_id: "PNT-0504",
+    penilai_id: "b0000000-0000-4000-b000-000000000001",
+    dinilai_id: "a0000000-0000-4000-a000-000000000001",
     bintang: 5,
-    komentar: "Kualitas panen tomat Grade A sangat baik, kemasan peti rapi dan tepat waktu saat penjemputan.",
+    komentar: "Kualitas panen cabai merah keriting Grade B sangat baik, kemasan peti rapi dan tepat waktu saat penjemputan.",
     created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    penilai_nama: "PT Indofood Agritama",
+    penilai_nama: "Rina Pradita (CV Saus Nusantara)",
   },
 ];

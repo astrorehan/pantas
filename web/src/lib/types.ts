@@ -220,7 +220,7 @@ export interface Listing {
   alamat?: string;
   hash_audit?: string;
   grading_id?: string;
-  status?: "tayang" | "dijeda" | "terjual";
+  status?: "tayang" | "habis" | "ditutup" | "disembunyikan" | "dijeda" | "terjual";
 }
 
 export interface DampakStats {

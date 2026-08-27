@@ -331,6 +331,118 @@ function filterOrdersForUser(orders: Order[], sesi: Sesi | null): Order[] {
   });
 }
 
+const DEMO_PENAWARAN_KEY = "pantas-demo-penawaran-v1";
+const PENAWARAN_SYNC_CHANNEL_NAME = "pantas-penawaran-sync-channel";
+
+const DEFAULT_DEMO_PENAWARAN: Penawaran[] = [
+  {
+    id: "PNW-001",
+    listing_id: "PNT-L-0401",
+    pembeli_id: "b0000000-0000-4000-b000-000000000001",
+    petani_id: "a0000000-0000-4000-a000-000000000001",
+    kuantitas_kg: 150,
+    harga_per_kg: 4100,
+    status: "terkirim",
+    created_at: "2026-08-25T10:00:00.000Z",
+    pembeli_nama: "Rina Pradita (CV Saus Nusantara)",
+    petani_nama: "Pak Warsono",
+  },
+  {
+    id: "PNW-002",
+    listing_id: "PNT-L-0422",
+    pembeli_id: "b0000000-0000-4000-b000-000000000001",
+    petani_id: "a0000000-0000-4000-a000-000000000003",
+    kuantitas_kg: 50,
+    harga_per_kg: 11000,
+    status: "ditawar_balik",
+    created_at: "2026-08-24T10:00:00.000Z",
+    pembeli_nama: "Rina Pradita (CV Saus Nusantara)",
+    petani_nama: "Bu Karsih",
+  },
+];
+
+function getStoredDemoPenawaran(): Penawaran[] {
+  if (typeof window === "undefined") return DEFAULT_DEMO_PENAWARAN;
+  try {
+    const raw = localStorage.getItem(DEMO_PENAWARAN_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed as Penawaran[];
+    }
+  } catch {}
+  try {
+    localStorage.setItem(DEMO_PENAWARAN_KEY, JSON.stringify(DEFAULT_DEMO_PENAWARAN));
+  } catch {}
+  return DEFAULT_DEMO_PENAWARAN;
+}
+
+function saveStoredDemoPenawaran(penawaran: Penawaran[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DEMO_PENAWARAN_KEY, JSON.stringify(penawaran));
+  } catch {}
+}
+
+let penawaranSyncChannelInstance: BroadcastChannel | null = null;
+function getPenawaranSyncChannel(): BroadcastChannel | null {
+  if (typeof window === "undefined" || !("BroadcastChannel" in window)) return null;
+  try {
+    penawaranSyncChannelInstance ??= new BroadcastChannel(PENAWARAN_SYNC_CHANNEL_NAME);
+    return penawaranSyncChannelInstance;
+  } catch {
+    return null;
+  }
+}
+
+function broadcastPenawaranSync(msg: {
+  type: "PENAWARAN_UPDATED" | "PENAWARAN_CREATED";
+  penawaran: Penawaran;
+}) {
+  try {
+    getPenawaranSyncChannel()?.postMessage(msg);
+  } catch {}
+}
+
+function updateSingleDemoPenawaran(updated: Penawaran) {
+  const all = getStoredDemoPenawaran();
+  const index = all.findIndex((p) => p.id === updated.id);
+  let next: Penawaran[];
+  if (index >= 0) {
+    next = all.map((p) => (p.id === updated.id ? { ...p, ...updated } : p));
+  } else {
+    next = [updated, ...all];
+  }
+  saveStoredDemoPenawaran(next);
+  broadcastPenawaranSync({ type: "PENAWARAN_UPDATED", penawaran: updated });
+}
+
+function filterPenawaranForUser(penawaran: Penawaran[], sesi: Sesi | null): Penawaran[] {
+  if (!sesi) return [];
+  const uid = sesi.userId;
+  const role = sesi.role;
+  const nama = sesi.nama?.toLowerCase();
+
+  return penawaran.filter((p) => {
+    if (uid) {
+      if (role === "petani" && p.petani_id === uid) return true;
+      if (role === "pembeli" && p.pembeli_id === uid) return true;
+    }
+    if (
+      role === "petani" &&
+      (p.petani_nama?.toLowerCase() === nama ||
+        (nama?.includes("warsono") && p.petani_nama?.toLowerCase().includes("warsono")))
+    )
+      return true;
+    if (
+      role === "pembeli" &&
+      (p.pembeli_nama?.toLowerCase() === nama ||
+        (nama?.includes("rina") && p.pembeli_nama?.toLowerCase().includes("rina")))
+    )
+      return true;
+    return false;
+  });
+}
+
 function randKode() {
   const c = () =>
     "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)];
@@ -756,6 +868,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     const finalOrders = Array.from(mergedOrdersMap.values());
 
+    // Shared demo penawaran for multi-role consistency
+    const allDemoPenawaran = getStoredDemoPenawaran();
+    const userDemoPenawaran = filterPenawaranForUser(allDemoPenawaran, activeSesi);
+
+    const existingPenawaran = saved?.myPenawaran ?? [];
+    const mergedPenawaranMap = new Map<string, Penawaran>();
+    for (const p of existingPenawaran) mergedPenawaranMap.set(p.id, p);
+    for (const p of userDemoPenawaran) {
+      if (!mergedPenawaranMap.has(p.id)) {
+        mergedPenawaranMap.set(p.id, p);
+      } else {
+        const existing = mergedPenawaranMap.get(p.id)!;
+        mergedPenawaranMap.set(p.id, {
+          ...existing,
+          status: p.status,
+          harga_per_kg: p.harga_per_kg ?? existing.harga_per_kg,
+          order_id: p.order_id ?? existing.order_id,
+        });
+      }
+    }
+    const finalPenawaran = Array.from(mergedPenawaranMap.values());
+
     // Default demo listings/scans if demo petani
     let initialListings = saved?.myListings ?? [];
     if (initialListings.length === 0 && activeSesi?.role === "petani") {
@@ -792,6 +926,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ...(saved ?? {}),
       sesi: activeSesi ?? saved?.sesi ?? null,
       orders: finalOrders.length > 0 ? finalOrders : (saved?.orders ?? []),
+      myPenawaran: finalPenawaran.length > 0 ? finalPenawaran : (saved?.myPenawaran ?? []),
       myListings: initialListings,
       scans: initialScans,
       inquiry: inquiryTersimpan(saved?.inquiry),
@@ -866,7 +1001,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Cross-tab and shared demo order synchronization
+  // Cross-tab and shared demo order & offer synchronization
   useEffect(() => {
     const handleOrderUpdate = (order: Order) => {
       setState((s) => {
@@ -887,11 +1022,39 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
     };
 
+    const handlePenawaranUpdate = (penawaran: Penawaran) => {
+      setState((s) => {
+        const sesi = s.sesi;
+        const belongsToUser =
+          !sesi ||
+          (sesi.role === "petani" && (penawaran.petani_id === sesi.userId || (sesi.nama && penawaran.petani_nama?.includes("Warsono")))) ||
+          (sesi.role === "pembeli" && (penawaran.pembeli_id === sesi.userId || (sesi.nama && penawaran.pembeli_nama?.includes("Rina"))));
+
+        if (!belongsToUser) return s;
+
+        const exists = s.myPenawaran.some((p) => p.id === penawaran.id);
+        const nextPenawaran = exists
+          ? s.myPenawaran.map((p) => (p.id === penawaran.id ? { ...p, ...penawaran } : p))
+          : [penawaran, ...s.myPenawaran];
+
+        return { ...s, myPenawaran: nextPenawaran };
+      });
+    };
+
     const channel = getSyncChannel();
     if (channel) {
       channel.onmessage = (e) => {
         if (e.data?.type === "ORDER_UPDATED" || e.data?.type === "ORDER_CREATED") {
           handleOrderUpdate(e.data.order);
+        }
+      };
+    }
+
+    const penawaranChan = getPenawaranSyncChannel();
+    if (penawaranChan) {
+      penawaranChan.onmessage = (e) => {
+        if (e.data?.type === "PENAWARAN_UPDATED" || e.data?.type === "PENAWARAN_CREATED") {
+          handlePenawaranUpdate(e.data.penawaran);
         }
       };
     }
@@ -904,6 +1067,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             setState((s) => {
               const userOrders = filterOrdersForUser(parsed, s.sesi);
               return { ...s, orders: userOrders };
+            });
+          }
+        } catch {}
+      }
+      if (e.key === DEMO_PENAWARAN_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue) as Penawaran[];
+          if (Array.isArray(parsed)) {
+            setState((s) => {
+              const userPenawaran = filterPenawaranForUser(parsed, s.sesi);
+              return { ...s, myPenawaran: userPenawaran };
             });
           }
         } catch {}
@@ -1557,6 +1731,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         myPenawaran: [...newOffers, ...s.myPenawaran],
       }));
 
+      // Simpan ke storage demo bersama dan siarkan ke tab lain
+      for (const o of newOffers) {
+        updateSingleDemoPenawaran(o);
+      }
+
       const supabase = await getSupabase();
       if (supabase) {
         // `id` sengaja tidak dikirim: kolomnya uuid, sedangkan id sementara di
@@ -1586,14 +1765,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         // Tukar id sementara dengan uuid yang benar-benar tersimpan, urut sama
         // dengan `rows` yang dikirim.
         const tersimpan = (data ?? []) as Penawaran[];
+        const adopsi = tersimpan.map((row, i) => ({
+          ...row,
+          pembeli_nama: newOffers[i]?.pembeli_nama,
+          petani_nama: newOffers[i]?.petani_nama,
+        }));
+        for (const row of adopsi) {
+          updateSingleDemoPenawaran(row);
+        }
         setState((s) => {
           const sementara = new Set(newOffers.map((o) => o.id));
           const sisa = s.myPenawaran.filter((p) => !sementara.has(p.id));
-          const adopsi = tersimpan.map((row, i) => ({
-            ...row,
-            pembeli_nama: newOffers[i]?.pembeli_nama,
-            petani_nama: newOffers[i]?.petani_nama,
-          }));
           return { ...s, myPenawaran: [...adopsi, ...sisa] };
         });
       }
@@ -1629,7 +1811,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (supabase) {
           const { data, error } = await supabase.rpc("terima_penawaran", {
             p_penawaran_id: id,
-            p_harga_per_kg: hargaBaru ?? null,
+            p_harga_per_kg: hargaBaru ?? undefined,
           });
           if (error) throw new Error(pesanGalat(error) ?? "Penawaran gagal diterima.");
 
@@ -1648,14 +1830,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             petani: stateRef.current.sesi?.nama ?? penawaran.petani_nama ?? "Petani PANTAS",
           };
 
+          const updatedPenawaran: Penawaran = {
+            ...penawaran,
+            status: "diterima",
+            harga_per_kg: order.harga_per_kg,
+            order_id: order.id,
+          };
+          updateSingleDemoPenawaran(updatedPenawaran);
           updateSingleDemoOrder(order);
           setState((s) => ({
             ...s,
-            myPenawaran: s.myPenawaran.map((p) =>
-              p.id === id
-                ? { ...p, status: "diterima", harga_per_kg: order.harga_per_kg, order_id: order.id }
-                : p,
-            ),
+            myPenawaran: s.myPenawaran.map((p) => (p.id === id ? updatedPenawaran : p)),
             orders: s.orders.some((o) => o.id === order.id)
               ? s.orders.map((o) => (o.id === order.id ? { ...o, ...order } : o))
               : [order, ...s.orders],
@@ -1688,14 +1873,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           komoditas: l.komoditas,
           listing_id: l.id,
         };
+        const updatedPenawaran: Penawaran = {
+          ...penawaran,
+          status: "diterima",
+          harga_per_kg: harga,
+          order_id: order.id,
+        };
+        updateSingleDemoPenawaran(updatedPenawaran);
         updateSingleDemoOrder(order);
         setState((s) => ({
           ...s,
-          myPenawaran: s.myPenawaran.map((p) =>
-            p.id === id
-              ? { ...p, status: "diterima", harga_per_kg: harga, order_id: order.id }
-              : p,
-          ),
+          myPenawaran: s.myPenawaran.map((p) => (p.id === id ? updatedPenawaran : p)),
           orders: [order, ...s.orders],
         }));
         return;
@@ -1703,6 +1891,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       // Tolak dan tawar balik tetap satu tulisan biasa: tidak ada pesanan yang
       // lahir, jadi tidak ada yang perlu diatomkan.
+      const targetPenawaran = stateRef.current.myPenawaran.find((p) => p.id === id);
+      if (targetPenawaran) {
+        updateSingleDemoPenawaran({
+          ...targetPenawaran,
+          status: statusBaru,
+          harga_per_kg: hargaBaru ?? targetPenawaran.harga_per_kg,
+        });
+      }
+
       setState((s) => ({
         ...s,
         myPenawaran: s.myPenawaran.map((p) =>
@@ -1781,7 +1978,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ?.rpc("verifikasi_serah_terima", {
               p_order_id: orderId,
               p_kode: kode,
-              p_berat_aktual_kg: berat ?? null,
+              p_berat_aktual_kg: berat ?? undefined,
             })
             .then(({ data, error }) => {
               if (error || data !== true)
@@ -1833,6 +2030,31 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ...s,
       myListings: s.myListings.map((l) => (l.id === id ? { ...l, ...updates } : l)),
     }));
+
+    if (isSupabaseConfigured) {
+      void (async () => {
+        const supabase = await getSupabase();
+        if (!supabase) return;
+        const payload: Partial<Database["public"]["Tables"]["listings"]["Update"]> = {};
+        if (updates.nama !== undefined) payload.nama = updates.nama;
+        if (updates.berat_kg !== undefined) payload.berat_kg = updates.berat_kg;
+        if (updates.harga_per_kg !== undefined) payload.harga_per_kg = updates.harga_per_kg;
+        if (updates.stok_kg !== undefined) payload.stok_kg = updates.stok_kg;
+        if (updates.satuan !== undefined) payload.satuan = updates.satuan;
+        if (updates.status !== undefined) {
+          payload.status =
+            updates.status === "dijeda"
+              ? "ditutup"
+              : updates.status === "terjual"
+                ? "habis"
+                : updates.status;
+        }
+        if (Object.keys(payload).length > 0) {
+          const { error } = await supabase.from("listings").update(payload).eq("id", id);
+          if (error) console.warn("[pantas] update listing di DB gagal:", error.message);
+        }
+      })();
+    }
   }, []);
 
   /**
@@ -1856,6 +2078,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ...s,
       myListings: s.myListings.filter((l) => l.id !== id),
     }));
+
+    if (isSupabaseConfigured) {
+      void (async () => {
+        const supabase = await getSupabase();
+        if (!supabase) return;
+        // Coba hapus baris. Jika listing memiliki riwayat pesanan/penawaran aktif,
+        // trigger cegah_hapus_listing_bertransaksi akan menolak hard delete (23503).
+        // Fallback otomatis ke soft-delete ("ditutup") agar data integritas transaksi terlindungi.
+        const { error } = await supabase.from("listings").delete().eq("id", id);
+        if (error) {
+          await supabase.from("listings").update({ status: "ditutup" }).eq("id", id);
+        }
+      })();
+    }
   }, []);
 
   const toggleListingStatus = useCallback((id: string, status: "tayang" | "dijeda" | "terjual") => {
@@ -1863,6 +2099,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ...s,
       myListings: s.myListings.map((l) => (l.id === id ? { ...l, status } : l)),
     }));
+
+    if (isSupabaseConfigured) {
+      void (async () => {
+        const supabase = await getSupabase();
+        if (!supabase) return;
+        const dbStatus = status === "dijeda" ? "ditutup" : status === "terjual" ? "habis" : status;
+        const { error } = await supabase.from("listings").update({ status: dbStatus }).eq("id", id);
+        if (error) console.warn("[pantas] toggle status listing di DB gagal:", error.message);
+      })();
+    }
   }, []);
 
   const completeTour = useCallback(async () => {

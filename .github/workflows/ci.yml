@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   web:
-    name: web — typecheck, lint, build
+    name: web — test, typecheck, lint, build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -63,6 +63,9 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      - name: Unit tests
+        run: npm test
+
       # Also enforces the design-system guardrails: no 430px phone frame
       # (F-76) and no Supabase imports outside the data/store seams (§12.3).
       - name: Lint
@@ -91,6 +94,54 @@ jobs:
             exit 1
           fi
           echo "bundle klien bersih"
+
+  integration:
+    name: integration — FastAPI + Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            ai_engine/requirements.txt
+            ai_engine/requirements-dev.txt
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: web
+
+      - name: Install grading-engine dependencies
+        run: python -m pip install -r ai_engine/requirements-dev.txt
+
+      - name: Python tests
+        run: python -m pytest ai_engine -rs
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: web
+
+      - name: End-to-end stack tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          if-no-files-found: error
+          retention-days: 14
 
   perf:
     name: perf — anggaran NFR-01..05
@@ -155,6 +206,4 @@ jobs:
 
 # Masih menyusul, sesuai §16.3 — ditambahkan saat perkakasnya mendarat, bukan
 # sebagai langkah yang selalu merah:
-#   vitest run          unit + komponen (Fase 3)
-#   playwright test     alur emas G1–G5 (§17.1, Fase 2 item 17)
 #   axe                 pemindaian aksesibilitas (F-96)

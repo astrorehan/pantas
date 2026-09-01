@@ -75,13 +75,17 @@ lihat [`supabase/`](../supabase/README.md).
 cd web
 npm install
 cp .env.example .env.local   # isi URL + anon key Supabase (opsional)
-npm run dev                  # http://localhost:3000
-
-# API grading (opsional, butuh bobot model di ai_engine/export_models/)
 cd ../ai_engine
-pip install -r requirements.txt
-uvicorn api:app --port 7860
+python -m venv .venv
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+
+# Dari root repo: menyalakan web + API grading sekaligus
+cd ..
+npm run dev
 ```
 
-Tanpa env sama sekali, aplikasi berjalan penuh dalam mode demo — persis
+Root orchestrator mengisi `NEXT_PUBLIC_PREDICT_URL=http://127.0.0.1:7860`
+untuk proses Next.js, jadi nilai tunnel lama di `.env.local` tidak mengambil
+alih sesi development. Tanpa env Supabase, aplikasi tetap berjalan dalam mode demo — persis
 perilaku sebelum backend ada.

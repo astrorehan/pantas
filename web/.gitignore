@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # lighthouse ci reports (F-99)
 /.lighthouseci

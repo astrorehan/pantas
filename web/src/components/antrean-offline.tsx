@@ -152,30 +152,3 @@ export function AntreanOffline() {
 
   return null;
 }
-
-/**
- * Pendaftaran service worker.
- *
- * Terpisah dari pemroses di atas supaya jelas apa yang dilakukan masing-masing:
- * worker hanya membangunkan halaman lewat Background Sync (public/sw.js), tanpa
- * strategi cache apa pun.
- */
-export function DaftarServiceWorker() {
-  useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-    const registerSW = () => {
-      navigator.serviceWorker.register("/sw.js").catch((e) => {
-        console.warn("[pantas] pendaftaran service worker gagal:", e);
-      });
-    };
-    if (typeof window !== "undefined") {
-      if ("requestIdleCallback" in window) {
-        (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(registerSW);
-      } else {
-        setTimeout(registerSW, 500);
-      }
-    }
-  }, []);
-
-  return null;
-}

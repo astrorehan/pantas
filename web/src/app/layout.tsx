@@ -8,6 +8,16 @@ import { TITLE_TEMPLATE } from "@/lib/metadata";
 import { LOCALE_SCRIPT, THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
+const SERVICE_WORKER_SCRIPT = `
+  if ("serviceWorker" in navigator) {
+    const daftar = () => navigator.serviceWorker
+      .register("/sw.js", { updateViaCache: "none" })
+      .catch((error) => console.warn("[pantas] pendaftaran service worker gagal:", error));
+    if ("requestIdleCallback" in window) window.requestIdleCallback(daftar);
+    else window.setTimeout(daftar, 500);
+  }
+`;
+
 
 /**
  * Tiga wajah huruf §7.3, tapi hanya satu yang boleh berebut bandwidth di muat
@@ -102,6 +112,9 @@ export default function RootLayout({
           <StoreProvider>
             {children}
             <Toaster />
+            {process.env.NODE_ENV === "production" && (
+              <script dangerouslySetInnerHTML={{ __html: SERVICE_WORKER_SCRIPT }} />
+            )}
           </StoreProvider>
         </LocaleProvider>
       </body>

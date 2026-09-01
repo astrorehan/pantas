@@ -276,6 +276,24 @@ export interface RingkasanPlatform {
 
 export type StatusPesanan = "dipesan" | "dikonfirmasi" | "serah_terima" | "selesai";
 
+/** Keadaan perlindungan transaksi, terpisah dari progres fisik pesanan. */
+export type StatusKasusTransaksi =
+  | "normal"
+  | "pembatalan_diajukan"
+  | "dibatalkan"
+  | "sengketa";
+
+/** Pembayaran v1 terjadi di luar aplikasi; PANTAS hanya mencatat pengakuan kedua pihak. */
+export type StatusPembayaran =
+  | "belum_dibayar"
+  | "ditandai_dibayar"
+  | "dikonfirmasi";
+
+export interface HasilAksiTransaksi {
+  berhasil: boolean;
+  pesan?: string;
+}
+
 export interface Pesanan {
   id: string;
   kode: string;

@@ -37,6 +37,7 @@ function getStatusTone(status: StatusPesanan): BadgeTone {
 export default function PesananPetaniPage() {
   const t = useTranslations("pesanan");
   const tPembeli = useTranslations("pembeli_pesanan");
+  const tTransaksi = useTranslations("transaksi");
   const { getStatusLabel } = useOrderStatus();
   const tanggalRingkas = useTanggalRingkas();
   const langkahKartu = useLangkahKartu();
@@ -45,8 +46,12 @@ export default function PesananPetaniPage() {
 
   const [filter, setFilter] = useState<"aktif" | "selesai">("aktif");
 
-  const aktifOrders = orders.filter((o) => o.status !== "selesai");
-  const selesaiOrders = orders.filter((o) => o.status === "selesai");
+  const selesaiOrders = orders.filter((o) => {
+    const kasus = o.status_kasus ?? "normal";
+    return kasus === "dibatalkan" || (o.status === "selesai" && kasus === "normal");
+  });
+  const selesaiIds = new Set(selesaiOrders.map((o) => o.id));
+  const aktifOrders = orders.filter((o) => !selesaiIds.has(o.id));
   const displayedOrders = filter === "aktif" ? aktifOrders : selesaiOrders;
 
   const SARINGAN = [
@@ -104,7 +109,16 @@ export default function PesananPetaniPage() {
             <ul className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
               {displayedOrders.map((o) => {
                 const tanggal = tanggalRingkas(o.tanggal);
-                const langkah = langkahKartu(o.status, "petani");
+                const kasus = o.status_kasus ?? "normal";
+                const langkah = kasus === "normal" ? langkahKartu(o.status, "petani") : null;
+                const labelKasus =
+                  kasus === "pembatalan_diajukan"
+                    ? tTransaksi("cancel_requested_title")
+                    : kasus === "dibatalkan"
+                      ? tTransaksi("cancelled_title")
+                      : kasus === "sengketa"
+                        ? tTransaksi("dispute_title")
+                        : null;
                 return (
                   // Lihat catatan pada daftar pesanan pembeli: butir grid
                   // melebar mengikuti min-content, dan teks `truncate` tidak
@@ -136,8 +150,16 @@ export default function PesananPetaniPage() {
                               #{o.id} • {o.berat_kg} kg
                               {tanggal && ` • ${tanggal}`}
                             </p>
-                            <Badge tone={getStatusTone(o.status)}>
-                              {getStatusLabel(o.status, STATUS_LABEL[o.status])}
+                            <Badge
+                              tone={
+                                kasus === "dibatalkan" || kasus === "sengketa"
+                                  ? "danger"
+                                  : kasus === "pembatalan_diajukan"
+                                    ? "warn"
+                                    : getStatusTone(o.status)
+                              }
+                            >
+                              {labelKasus ?? getStatusLabel(o.status, STATUS_LABEL[o.status])}
                             </Badge>
                           </div>
                           <p className="type-heading-sm tnum flex items-center gap-1 text-ink">

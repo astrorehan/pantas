@@ -33,6 +33,7 @@ export default function PesananListPage() {
   const store = useStore();
   const t = useTranslations("pembeli_pesanan");
   const tPesanan = useTranslations("pesanan");
+  const tTransaksi = useTranslations("transaksi");
   const { getStatusLabel } = useOrderStatus();
   const tanggalRingkas = useTanggalRingkas();
   const langkahKartu = useLangkahKartu();
@@ -43,7 +44,11 @@ export default function PesananListPage() {
   const { berjalan, selesai } = useMemo(() => {
     const berjalan: Order[] = [];
     const selesai: Order[] = [];
-    for (const o of store.orders) (o.status === "selesai" ? selesai : berjalan).push(o);
+    for (const o of store.orders) {
+      const kasus = o.status_kasus ?? "normal";
+      const arsip = kasus === "dibatalkan" || (o.status === "selesai" && kasus === "normal");
+      (arsip ? selesai : berjalan).push(o);
+    }
     return { berjalan, selesai };
   }, [store.orders]);
 
@@ -194,7 +199,16 @@ export default function PesananListPage() {
               <ul className="grid gap-3 pt-1 lg:grid-cols-2 2xl:grid-cols-3">
                 {daftar.map((o) => {
                   const tanggal = tanggalRingkas(o.tanggal);
-                  const langkah = langkahKartu(o.status, "pembeli");
+                  const kasus = o.status_kasus ?? "normal";
+                  const langkah = kasus === "normal" ? langkahKartu(o.status, "pembeli") : null;
+                  const labelKasus =
+                    kasus === "pembatalan_diajukan"
+                      ? tTransaksi("cancel_requested_title")
+                      : kasus === "dibatalkan"
+                        ? tTransaksi("cancelled_title")
+                        : kasus === "sengketa"
+                          ? tTransaksi("dispute_title")
+                          : null;
                   return (
                     // `min-w-0`: butir grid punya lebar minimum otomatis
                     // sebesar min-content-nya, dan min-content dari baris meta
@@ -228,9 +242,17 @@ export default function PesananListPage() {
 
                           <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3">
                             <p
-                              className={`type-body-sm font-bold ${o.status === "selesai" ? "text-brand" : "text-grade-b"}`}
+                              className={`type-body-sm font-bold ${
+                                kasus === "dibatalkan" || kasus === "sengketa"
+                                  ? "text-danger"
+                                  : kasus === "pembatalan_diajukan"
+                                    ? "text-clay-700 dark:text-clay-300"
+                                    : o.status === "selesai"
+                                      ? "text-brand"
+                                      : "text-grade-b"
+                              }`}
                             >
-                              {getStatusLabel(o.status)}
+                              {labelKasus ?? getStatusLabel(o.status)}
                             </p>
                             <p className="type-heading-sm tnum flex items-center gap-1 text-ink">
                               {formatRupiah(o.total)}

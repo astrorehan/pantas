@@ -101,10 +101,9 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/pembeli/akun", label: "Akun", icon: User, inBottomNav: true },
   ],
   /**
-   * Lima tujuan, sama seperti dua peran lain. Sebelumnya tiga, dan salah
-   * satunya — Portal Demo — bukan pekerjaan operator melainkan pintu keluar ke
-   * panggung juri. Moderasi dan jejak audit adalah dua kewenangan yang
-   * benar-benar dimiliki peran ini di basis data, jadi keduanya naik ke bilah.
+   * Lima tujuan, sama seperti dua peran lain. Portal Demo bukan pekerjaan
+   * operator, jadi slotnya kini dipakai sengketa transaksi: permukaan tempat
+   * pembatalan bermasalah benar-benar dapat ditutup dengan resolusi teraudit.
    */
   admin: [
     { href: "/admin", label: "Ringkasan", icon: Home, inBottomNav: true },
@@ -124,7 +123,13 @@ export const NAV: Record<Role, NavItem[]> = {
       icon: ScrollText,
       inBottomNav: true,
     },
-    { href: "/demo", label: "Portal Demo", short: "Demo", icon: User, inBottomNav: true },
+    {
+      href: "/admin/sengketa",
+      label: "Sengketa Transaksi",
+      short: "Sengketa",
+      icon: Handshake,
+      inBottomNav: true,
+    },
   ],
 };
 

@@ -9,7 +9,9 @@ export default function AkunPembeliPage() {
   const store = useStore();
   const t = useTranslations("settings");
 
-  const selesai = store.orders.filter((o) => o.status === "selesai").length;
+  const selesai = store.orders.filter(
+    (o) => o.status === "selesai" && (o.status_kasus ?? "normal") === "normal",
+  ).length;
   const peranLabel = store.sesi?.lokasi
     ? `${t("role_pembeli_industri")} \u2022 ${store.sesi.lokasi}`
     : t("role_pembeli_industri");

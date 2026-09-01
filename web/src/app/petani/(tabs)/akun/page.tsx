@@ -12,8 +12,13 @@ import { useTranslations } from "@/lib/i18n";
 export default function AkunPetaniPage() {
   const store = useStore();
   const t = useTranslations("settings");
-  const selesai = store.orders.filter((o) => o.status === "selesai").length;
-  const aktif = store.orders.filter((o) => o.status !== "selesai").length;
+  const selesai = store.orders.filter(
+    (o) => o.status === "selesai" && (o.status_kasus ?? "normal") === "normal",
+  ).length;
+  const aktif = store.orders.filter((o) => {
+    const kasus = o.status_kasus ?? "normal";
+    return kasus !== "dibatalkan" && !(o.status === "selesai" && kasus === "normal");
+  }).length;
 
   /**
    * Hitungan arsip, bukan panjang singgahan.

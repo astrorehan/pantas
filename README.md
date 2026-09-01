@@ -105,24 +105,31 @@ Semua anggota merupakan mahasiswa aktif **Universitas Gadjah Mada (UGM)**:
 
 ## ⚡ Panduan Menjalankan Aplikasi
 
-### 1. Kloning & Pengaturan Frontend (`web/`)
+### 1. Siapkan dependency
 ```bash
 cd web
 npm install
-npm run gen:komoditas
-npm run dev
-```
-Akses di `http://localhost:3000`. Mode demo dapat langsung berjalan penuh tanpa konfigurasi environment variable tambahan.
-
-### 2. Pengaturan AI Grading Engine (`ai_engine/`)
-```bash
-cd ai_engine
+cd ../ai_engine
 python -m venv .venv
 source .venv/bin/activate  # Di Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn api:app --reload --port 8000
+pip install -r requirements-dev.txt
 ```
-Swagger UI interaktif tersedia di `http://localhost:8000/docs`.
+
+### 2. Jalankan seluruh stack dari root
+```bash
+cd ..
+npm run dev
+```
+
+Perintah tersebut menyalakan frontend di `http://localhost:3000` dan grading engine di `http://localhost:7860`, lalu mengarahkan frontend ke engine lokal secara otomatis. Menghentikan perintah juga menghentikan kedua service. Swagger UI tersedia di `http://localhost:7860/docs`.
+
+Untuk verifikasi otomatis:
+
+```bash
+npm test             # unit test frontend
+npm run test:e2e     # FastAPI + Next.js + Chromium
+npm run check:health -- --url https://pantas-ai.vercel.app
+```
 
 ### 3. Akun Uji Coba (Demo Mode)
 Gunakan akun uji coba berikut atau klik tombol **1-Tap Login** di halaman `/demo`:

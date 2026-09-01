@@ -1,0 +1,15 @@
+{
+  "name": "pantas",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev-stack.mjs",
+    "dev:e2e": "node scripts/dev-stack.mjs --e2e",
+    "test": "npm --prefix web test",
+    "test:e2e": "npm --prefix web run test:e2e",
+    "check:health": "node scripts/check-health.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -256,51 +256,92 @@ export type Database = {
       }
       orders: {
         Row: {
+          alasan_kasus: string | null
           berat_aktual_kg: number | null
           berat_kg: number
           created_at: string
+          diminta_oleh: string | null
+          diminta_pada: string | null
+          ditanggapi_oleh: string | null
+          ditanggapi_pada: string | null
           grade: string
           harga_per_kg: number
           id: string
           kode: string
           listing_id: string | null
           nama: string
+          pembayaran_dikonfirmasi_pada: string | null
+          pembayaran_ditandai_pada: string | null
           pembeli_id: string
           petani_id: string
           status: string
+          status_kasus: string
+          status_pembayaran: string
           total: number
         }
         Insert: {
+          alasan_kasus?: string | null
           berat_aktual_kg?: number | null
           berat_kg: number
           created_at?: string
+          diminta_oleh?: string | null
+          diminta_pada?: string | null
+          ditanggapi_oleh?: string | null
+          ditanggapi_pada?: string | null
           grade: string
           harga_per_kg: number
           id?: string
           kode?: string
           listing_id?: string | null
           nama: string
+          pembayaran_dikonfirmasi_pada?: string | null
+          pembayaran_ditandai_pada?: string | null
           pembeli_id: string
           petani_id: string
           status?: string
+          status_kasus?: string
+          status_pembayaran?: string
           total: number
         }
         Update: {
+          alasan_kasus?: string | null
           berat_aktual_kg?: number | null
           berat_kg?: number
           created_at?: string
+          diminta_oleh?: string | null
+          diminta_pada?: string | null
+          ditanggapi_oleh?: string | null
+          ditanggapi_pada?: string | null
           grade?: string
           harga_per_kg?: number
           id?: string
           kode?: string
           listing_id?: string | null
           nama?: string
+          pembayaran_dikonfirmasi_pada?: string | null
+          pembayaran_ditandai_pada?: string | null
           pembeli_id?: string
           petani_id?: string
           status?: string
+          status_kasus?: string
+          status_pembayaran?: string
           total?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_diminta_oleh_fkey"
+            columns: ["diminta_oleh"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_ditanggapi_oleh_fkey"
+            columns: ["ditanggapi_oleh"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_listing_id_fkey"
             columns: ["listing_id"]
@@ -870,32 +911,65 @@ export type Database = {
       }
     }
     Functions: {
+      ajukan_pembatalan_order: {
+        Args: { p_alasan: string; p_order_id: string }
+        Returns: Json
+      }
       boleh_menilai_pesanan: {
         Args: { p_dinilai_id: string; p_order_id: string; p_penilai_id: string }
         Returns: boolean
       }
       gen_kode_serah_terima: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      buka_sengketa_order: {
+        Args: { p_alasan: string; p_order_id: string }
+        Returns: Json
+      }
+      konfirmasi_pembayaran_order: {
+        Args: { p_order_id: string }
+        Returns: Json
+      }
       moderasi_listing: {
         Args: { p_alasan: string; p_listing_id: string; p_status: string }
         Returns: string
       }
       reset_demo: { Args: never; Returns: Json }
+      selesaikan_sengketa_order: {
+        Args: { p_batalkan: boolean; p_catatan: string; p_order_id: string }
+        Returns: Json
+      }
+      tandai_pembayaran_order: {
+        Args: { p_order_id: string }
+        Returns: Json
+      }
+      tanggapi_pembatalan_order: {
+        Args: { p_order_id: string; p_setuju: boolean }
+        Returns: Json
+      }
       terima_penawaran: {
         Args: { p_harga_per_kg?: number; p_penawaran_id: string }
         Returns: {
+          alasan_kasus: string | null
           berat_aktual_kg: number | null
           berat_kg: number
           created_at: string
+          diminta_oleh: string | null
+          diminta_pada: string | null
+          ditanggapi_oleh: string | null
+          ditanggapi_pada: string | null
           grade: string
           harga_per_kg: number
           id: string
           kode: string
           listing_id: string | null
           nama: string
+          pembayaran_dikonfirmasi_pada: string | null
+          pembayaran_ditandai_pada: string | null
           pembeli_id: string
           petani_id: string
           status: string
+          status_kasus: string
+          status_pembayaran: string
           total: number
         }
         SetofOptions: {

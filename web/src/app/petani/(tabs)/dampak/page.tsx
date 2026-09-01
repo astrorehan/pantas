@@ -66,7 +66,10 @@ export default function DampakPage() {
 
   // Hanya gunakan data nyata dari pesanan yang benar-benar selesai
   const selesai = useMemo(
-    () => store.orders.filter((o) => o.status === "selesai"),
+    () =>
+      store.orders.filter(
+        (o) => o.status === "selesai" && (o.status_kasus ?? "normal") === "normal",
+      ),
     [store.orders],
   );
 

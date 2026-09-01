@@ -35,6 +35,7 @@ import type { Pengiriman, StatusPesanan, Ulasan } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { ChatWindow } from "@/components/chat-window";
 import { RatingModal } from "@/components/rating-modal";
+import { TransactionLifecycle } from "@/components/transaction-lifecycle";
 import { useTranslations } from "@/lib/i18n";
 
 /*
@@ -130,7 +131,9 @@ export default function PesananPetaniDetail() {
   // Pesanan yang belum dikonfirmasi belum punya muatan, jadi tidak ada yang
   // perlu ditanyakan ke basis data di tahap itu.
   const orderId = order?.id;
-  const perluPenjemputan = order ? order.status !== "dipesan" : false;
+  const perluPenjemputan = order
+    ? order.status !== "dipesan" && (order.status_kasus ?? "normal") === "normal"
+    : false;
   useEffect(() => {
     if (!orderId || !perluPenjemputan) return;
     let batal = false;
@@ -169,6 +172,7 @@ export default function PesananPetaniDetail() {
 
   if (!order) return null;
 
+  const transaksiNormal = (order.status_kasus ?? "normal") === "normal";
   const tahap = urutanStatus(order.status);
   const langkah = (
     {
@@ -219,9 +223,11 @@ export default function PesananPetaniDetail() {
             langkah={langkah}
           />
 
+          <TransactionLifecycle order={order} peran="petani" />
+
           <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
             <div className="flex flex-col gap-6">
-              {order.status === "selesai" ? (
+              {transaksiNormal && (order.status === "selesai" ? (
                 <Card className="flex flex-col items-center p-6 text-center">
                   <CheckCircle2 aria-hidden className="size-8 text-brand" />
                   <p className="type-heading-sm pt-3 text-ink">
@@ -392,13 +398,13 @@ export default function PesananPetaniDetail() {
                     </Button>
                   </div>
                 </Card>
-              )}
+              ))}
 
               {/* Jalan pulang ke muatan pesanan ini. Sesudah menjadwalkan,
                   petani terlempar sekali ke layar logistik dan tidak punya
                   pintu balik selain menggali lewat tab Akun — padahal checklist
                   rantai dingin justru dicentang keesokan paginya. */}
-              {pengiriman && (
+              {transaksiNormal && pengiriman && (
                 <Card className="flex flex-col gap-3 p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -441,7 +447,7 @@ export default function PesananPetaniDetail() {
               {/* Tahap yang belum tiba tetap disebut, supaya alurnya bisa
                   dibaca utuh dan tidak terasa seperti layar yang kehilangan
                   tombolnya. */}
-              {tahap < urutanStatus("serah_terima") && (
+              {transaksiNormal && tahap < urutanStatus("serah_terima") && (
                 <div className="flex gap-3 rounded-xl border border-dashed border-line p-4">
                   <Lock aria-hidden className="mt-0.5 size-4 shrink-0 text-label" />
                   <div>

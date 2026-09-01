@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
+  CreditCard,
   Eye,
   EyeOff,
   ScanLine,
   ScrollText,
+  ShieldAlert,
   ShoppingCart,
   Store,
   TrendingUp,
@@ -43,6 +45,12 @@ const AKSI_DIKENAL = {
   "rute.status": { ikon: Truck, kunci: "aksi_rute_status" },
   "pesanan.status": { ikon: ShoppingCart, kunci: "aksi_pesanan_status" },
   "pesanan.serah_terima": { ikon: CheckCircle2, kunci: "aksi_pesanan_serah_terima" },
+  "pesanan.kasus": { ikon: ShieldAlert, kunci: "aksi_pesanan_kasus" },
+  "pesanan.pembayaran": { ikon: CreditCard, kunci: "aksi_pesanan_pembayaran" },
+  "pesanan.sengketa_resolusi": {
+    ikon: CheckCircle2,
+    kunci: "aksi_pesanan_sengketa_resolusi",
+  },
   "grading.simpan": { ikon: ScanLine, kunci: "aksi_grading_simpan" },
   "harga_acuan.ubah": { ikon: TrendingUp, kunci: "aksi_harga_acuan_ubah" },
 } as const;

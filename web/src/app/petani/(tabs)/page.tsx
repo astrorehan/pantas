@@ -50,7 +50,10 @@ export default function DashboardPetani() {
   const store = useStore();
 
   const lastScan = store.scans[0];
-  const pesananMasuk = store.orders.filter((o) => o.status !== "selesai").length;
+  const pesananMasuk = store.orders.filter((o) => {
+    const kasus = o.status_kasus ?? "normal";
+    return kasus !== "dibatalkan" && !(o.status === "selesai" && kasus === "normal");
+  }).length;
   const penawaranMasuk = store.myPenawaran.filter(
     (p) => p.status === "terkirim" || p.status === "ditawar_balik",
   ).length;
@@ -92,7 +95,10 @@ export default function DashboardPetani() {
    */
   const antreanPenuh = [
     ...store.orders
-      .filter((o) => o.status !== "selesai")
+      .filter((o) => {
+        const kasus = o.status_kasus ?? "normal";
+        return kasus !== "dibatalkan" && !(o.status === "selesai" && kasus === "normal");
+      })
       .map((o) => {
         const l = langkahKartu(o.status, "petani");
         return {

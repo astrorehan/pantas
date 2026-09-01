@@ -65,7 +65,7 @@ export async function getRingkasanPlatform(): Promise<RingkasanPlatform> {
   const [profil, listing, pesanan, grading] = await Promise.all([
     client.from("profiles").select("peran, is_demo"),
     client.from("listings").select("status"),
-    client.from("orders").select("status, total"),
+    client.from("orders").select("status, status_kasus, total"),
     client.from("gradings").select("id", { count: "exact", head: true }).gte("created_at", sejak24Jam),
   ]);
 
@@ -82,12 +82,16 @@ export async function getRingkasanPlatform(): Promise<RingkasanPlatform> {
 
   const barisProfil = (profil.data ?? []) as { peran: string; is_demo: boolean }[];
   const barisListing = (listing.data ?? []) as { status: string }[];
-  const barisPesanan = (pesanan.data ?? []) as { status: StatusPesanan; total: number }[];
+  const barisPesanan = (pesanan.data ?? []) as {
+    status: StatusPesanan;
+    status_kasus: string;
+    total: number;
+  }[];
 
   const hitungPeran = (peran: string) =>
     barisProfil.filter((p) => p.peran === peran).length;
   const hitungStatus = (status: StatusPesanan) =>
-    barisPesanan.filter((o) => o.status === status).length;
+    barisPesanan.filter((o) => o.status === status && o.status_kasus === "normal").length;
 
   return {
     pengguna: {
@@ -110,10 +114,10 @@ export async function getRingkasanPlatform(): Promise<RingkasanPlatform> {
       total: barisPesanan.length,
     },
     gmv_selesai: barisPesanan
-      .filter((o) => o.status === "selesai")
+      .filter((o) => o.status === "selesai" && o.status_kasus === "normal")
       .reduce((n, o) => n + Number(o.total ?? 0), 0),
     gmv_berjalan: barisPesanan
-      .filter((o) => o.status !== "selesai")
+      .filter((o) => o.status !== "selesai" && o.status_kasus === "normal")
       .reduce((n, o) => n + Number(o.total ?? 0), 0),
     grading_24j: grading.count ?? 0,
     sumber: "supabase",
@@ -282,6 +286,71 @@ function naikkanRuteLokal(
   } catch {
     return { ok: false, pesan: "Penyimpanan peramban penuh atau tidak tersedia." };
   }
+}
+
+/** Sengketa aktif yang menunggu keputusan operator koperasi. */
+export interface BarisSengketa {
+  id: string;
+  nama: string;
+  status: StatusPesanan;
+  alasan: string;
+  total: number;
+  diminta_pada: string;
+  pembeli: string;
+  petani: string;
+}
+
+export async function getSengketaAktif(): Promise<BarisSengketa[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const client = supabase as unknown as DynamicSupabase;
+  const { data, error } = await client
+    .from("orders")
+    .select(
+      "id, nama, status, alasan_kasus, total, diminta_pada, pembeli:profiles!orders_pembeli_id_fkey(nama), petani:profiles!orders_petani_id_fkey(nama)",
+    )
+    .eq("status_kasus", "sengketa")
+    .order("diminta_pada", { ascending: true });
+
+  if (error) {
+    console.warn("[pantas] getSengketaAktif:", pesanGalat(error));
+    return [];
+  }
+
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+    id: String(r.id),
+    nama: String(r.nama),
+    status: r.status as StatusPesanan,
+    alasan: String(r.alasan_kasus ?? ""),
+    total: Number(r.total ?? 0),
+    diminta_pada: String(r.diminta_pada ?? ""),
+    pembeli: (r.pembeli as { nama?: string } | null)?.nama ?? "Pembeli",
+    petani: (r.petani as { nama?: string } | null)?.nama ?? "Petani",
+  }));
+}
+
+export async function selesaikanSengketa(
+  orderId: string,
+  batalkan: boolean,
+  catatan: string,
+): Promise<{ ok: true } | { ok: false; pesan: string }> {
+  const supabase = await getSupabase();
+  if (!supabase) return { ok: false, pesan: "Basis data tidak tersedia." };
+
+  const client = supabase as unknown as DynamicSupabase;
+  const { error } = await client.rpc("selesaikan_sengketa_order", {
+    p_order_id: orderId,
+    p_batalkan: batalkan,
+    p_catatan: catatan.trim(),
+  });
+  if (error) {
+    return {
+      ok: false,
+      pesan: pesanGalat(error) ?? "Resolusi sengketa gagal disimpan.",
+    };
+  }
+  return { ok: true };
 }
 
 /** Satu peristiwa di jejak audit (F-62). */

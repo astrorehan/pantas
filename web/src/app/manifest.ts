@@ -5,7 +5,9 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'PANTAS App',
     short_name: 'PANTAS',
     description: 'Aplikasi Grading Panen AI dan Marketplace.',
+    id: '/',
     start_url: '/',
+    scope: '/',
     display: 'standalone',
     // Layar percikan PWA: kanvas oat, bukan putih.
     background_color: '#f2ede3',

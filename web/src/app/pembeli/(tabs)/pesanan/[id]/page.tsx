@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Info, PartyPopper, Printer, ScanLine, Star } from "lucide-react";
+import { PartyPopper, Printer, ScanLine, Star } from "lucide-react";
 import { BackBar } from "@/components/chrome";
 import { Container } from "@/components/container";
 import { QrKode, StatusHero } from "@/components/order-bits";
@@ -15,6 +15,7 @@ import type { StatusPesanan, Ulasan } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { ChatWindow } from "@/components/chat-window";
 import { RatingModal } from "@/components/rating-modal";
+import { TransactionLifecycle } from "@/components/transaction-lifecycle";
 import { useTranslations } from "@/lib/i18n";
 
 /*
@@ -42,7 +43,6 @@ export default function PesananDetailPage() {
 
   const t = useTranslations("pembeli_pesanan");
   const tPes = useTranslations("pesanan");
-  const tProd = useTranslations("produk");
 
   const [showRating, setShowRating] = useState(false);
   const [ulasanPesanan, setUlasanPesanan] = useState<Ulasan[]>([]);
@@ -82,6 +82,7 @@ export default function PesananDetailPage() {
 
   if (!order) return null;
 
+  const transaksiNormal = (order.status_kasus ?? "normal") === "normal";
   const langkah = (
     {
       dipesan: t("next_dipesan"),
@@ -91,7 +92,7 @@ export default function PesananDetailPage() {
     } satisfies Record<StatusPesanan, string>
   )[order.status];
 
-  const saatnyaSerahTerima = order.status === "serah_terima";
+  const saatnyaSerahTerima = transaksiNormal && order.status === "serah_terima";
 
   const wa = `https://wa.me/?text=${encodeURIComponent(
     `Halo ${order.petani}, saya pembeli pesanan ${order.nama} #${order.id} di PANTAS.`,
@@ -113,9 +114,11 @@ export default function PesananDetailPage() {
             langkah={langkah}
           />
 
+          <TransactionLifecycle order={order} peran="pembeli" />
+
           <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
             <div className="flex flex-col gap-6">
-              {order.status === "selesai" ? (
+              {transaksiNormal && (order.status === "selesai" ? (
                 <Card className="flex flex-col items-center p-6 text-center">
                   <PartyPopper aria-hidden className="size-8 text-brand" />
                   <p className="type-heading-sm pt-3 text-ink">
@@ -179,7 +182,7 @@ export default function PesananDetailPage() {
                     </Button>
                   </div>
                 </Card>
-              )}
+              ))}
 
               {/* Order summary */}
               <Card className="p-4">
@@ -213,12 +216,6 @@ export default function PesananDetailPage() {
                   </span>
                 </div>
 
-                {order.status !== "selesai" && (
-                  <p className="type-body-sm mt-3 flex gap-2 rounded-md bg-sunken p-3 text-muted">
-                    <Info aria-hidden className="size-4 shrink-0" />
-                    {tProd("payment_note")}
-                  </p>
-                )}
               </Card>
             </div>
 

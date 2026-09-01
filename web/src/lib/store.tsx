@@ -35,7 +35,10 @@ import type {
   Listing,
   Peristiwa,
   Role,
+  StatusKasusTransaksi,
+  StatusPembayaran,
   StatusPesanan,
+  HasilAksiTransaksi,
   Penawaran,
 } from "./types";
 
@@ -116,6 +119,17 @@ export interface Order {
   komoditas?: string;
   /** Id listing asal untuk pelacakan dan penghubung penawaran. */
   listing_id?: string;
+  /** Pembatalan/sengketa tidak mengubah rel progres fisik `status`. */
+  status_kasus?: StatusKasusTransaksi;
+  alasan_kasus?: string;
+  diminta_oleh?: string;
+  diminta_pada?: string;
+  ditanggapi_oleh?: string;
+  ditanggapi_pada?: string;
+  /** Pembayaran dilakukan di luar aplikasi; ini hanya konfirmasi dua pihak. */
+  status_pembayaran?: StatusPembayaran;
+  pembayaran_ditandai_pada?: string;
+  pembayaran_dikonfirmasi_pada?: string;
 }
 
 /**
@@ -555,6 +569,15 @@ function rowToOrder(r: OrderRow): Order {
     tanggal: r.created_at,
     komoditas: r.listing?.komoditas,
     listing_id: r.listing_id ?? undefined,
+    status_kasus: r.status_kasus as StatusKasusTransaksi,
+    alasan_kasus: r.alasan_kasus ?? undefined,
+    diminta_oleh: r.diminta_oleh ?? undefined,
+    diminta_pada: r.diminta_pada ?? undefined,
+    ditanggapi_oleh: r.ditanggapi_oleh ?? undefined,
+    ditanggapi_pada: r.ditanggapi_pada ?? undefined,
+    status_pembayaran: r.status_pembayaran as StatusPembayaran,
+    pembayaran_ditandai_pada: r.pembayaran_ditandai_pada ?? undefined,
+    pembayaran_dikonfirmasi_pada: r.pembayaran_dikonfirmasi_pada ?? undefined,
   };
 }
 
@@ -784,6 +807,16 @@ interface Actions {
   ): boolean;
   /** Memperbarui status pesanan secara manual (misal: F-50 Jadwal) */
   setOrderStatus(orderId: string, status: StatusPesanan): void;
+  /** Batalkan langsung sebelum konfirmasi, atau minta persetujuan sesudahnya. */
+  ajukanPembatalan(orderId: string, alasan: string): Promise<HasilAksiTransaksi>;
+  /** Hanya pihak lawan yang dapat menerima atau menolak permintaan pembatalan. */
+  tanggapiPembatalan(orderId: string, setuju: boolean): Promise<HasilAksiTransaksi>;
+  /** Kunci transaksi dan teruskan kasus untuk resolusi admin. */
+  bukaSengketa(orderId: string, alasan: string): Promise<HasilAksiTransaksi>;
+  /** Catat klaim pembeli bahwa pembayaran di luar aplikasi telah dilakukan. */
+  tandaiPembayaran(orderId: string): Promise<HasilAksiTransaksi>;
+  /** Catat konfirmasi petani bahwa pembayaran di luar aplikasi telah diterima. */
+  konfirmasiPembayaran(orderId: string): Promise<HasilAksiTransaksi>;
   /**
    * Hitung ulang badge pesan belum dibaca. Dipanggil `ChatWindow` sesudah ia
    * menandai percakapan yang sedang dibuka sebagai sudah dibaca.
@@ -1939,7 +1972,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (!target) {
           const all = getStoredDemoOrders();
           const demoTarget = all.find((o) => o.id === orderId);
-          if (demoTarget && clean(kode) === clean(demoTarget.kode)) {
+          if (
+            demoTarget &&
+            (demoTarget.status_kasus ?? "normal") === "normal" &&
+            clean(kode) === clean(demoTarget.kode)
+          ) {
             ok = true;
             updatedOrder = {
               ...demoTarget,
@@ -1949,7 +1986,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
           return s;
         }
-        if (clean(kode) !== clean(target.kode)) return s;
+        if (
+          (target.status_kasus ?? "normal") !== "normal" ||
+          clean(kode) !== clean(target.kode)
+        ) return s;
         ok = true;
         updatedOrder = {
           ...target,
@@ -1995,6 +2035,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const setOrderStatus = useCallback((orderId: string, status: StatusPesanan) => {
+    const targetDikenal =
+      stateRef.current.orders.find((o) => o.id === orderId) ??
+      getStoredDemoOrders().find((o) => o.id === orderId);
+    if (targetDikenal && (targetDikenal.status_kasus ?? "normal") !== "normal") return;
+
     let updatedOrder: Order | undefined;
     setState((s) => {
       const nextOrders = s.orders.map((o) => {
@@ -2024,6 +2069,96 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       );
     }
   }, []);
+
+  const temukanOrderLokal = useCallback(
+    (orderId: string) =>
+      stateRef.current.orders.find((o) => o.id === orderId) ??
+      getStoredDemoOrders().find((o) => o.id === orderId),
+    [],
+  );
+
+  const ubahOrderLokal = useCallback(
+    (orderId: string, patch: Partial<Order>): Order | undefined => {
+      const target =
+        stateRef.current.orders.find((o) => o.id === orderId) ??
+        getStoredDemoOrders().find((o) => o.id === orderId);
+      if (!target) return undefined;
+
+      const updated = { ...target, ...patch };
+      setState((s) => ({
+        ...s,
+        orders: s.orders.map((o) => (o.id === orderId ? { ...o, ...patch } : o)),
+      }));
+      updateSingleDemoOrder(updated);
+      return updated;
+    },
+    [],
+  );
+
+  const ajukanPembatalan = useCallback(
+    async (orderId: string, alasan: string): Promise<HasilAksiTransaksi> => {
+      const target = temukanOrderLokal(orderId);
+      const aktor = stateRef.current.sesi?.userId;
+      const { hasil, patch } = await import("./transaksi-actions").then((m) =>
+        m.ajukanPembatalanOrder(target, aktor, alasan),
+      );
+      if (patch) ubahOrderLokal(orderId, patch);
+      return hasil;
+    },
+    [temukanOrderLokal, ubahOrderLokal],
+  );
+
+  const tanggapiPembatalan = useCallback(
+    async (orderId: string, setuju: boolean): Promise<HasilAksiTransaksi> => {
+      const target = temukanOrderLokal(orderId);
+      const aktor = stateRef.current.sesi?.userId;
+      const { hasil, patch } = await import("./transaksi-actions").then((m) =>
+        m.tanggapiPembatalanOrder(target, aktor, setuju),
+      );
+      if (patch) ubahOrderLokal(orderId, patch);
+      return hasil;
+    },
+    [temukanOrderLokal, ubahOrderLokal],
+  );
+
+  const bukaSengketa = useCallback(
+    async (orderId: string, alasan: string): Promise<HasilAksiTransaksi> => {
+      const target = temukanOrderLokal(orderId);
+      const aktor = stateRef.current.sesi?.userId;
+      const { hasil, patch } = await import("./transaksi-actions").then((m) =>
+        m.bukaSengketaOrder(target, aktor, alasan),
+      );
+      if (patch) ubahOrderLokal(orderId, patch);
+      return hasil;
+    },
+    [temukanOrderLokal, ubahOrderLokal],
+  );
+
+  const tandaiPembayaran = useCallback(
+    async (orderId: string): Promise<HasilAksiTransaksi> => {
+      const target = temukanOrderLokal(orderId);
+      const aktor = stateRef.current.sesi?.userId;
+      const { hasil, patch } = await import("./transaksi-actions").then((m) =>
+        m.tandaiPembayaranOrder(target, aktor),
+      );
+      if (patch) ubahOrderLokal(orderId, patch);
+      return hasil;
+    },
+    [temukanOrderLokal, ubahOrderLokal],
+  );
+
+  const konfirmasiPembayaran = useCallback(
+    async (orderId: string): Promise<HasilAksiTransaksi> => {
+      const target = temukanOrderLokal(orderId);
+      const aktor = stateRef.current.sesi?.userId;
+      const { hasil, patch } = await import("./transaksi-actions").then((m) =>
+        m.konfirmasiPembayaranOrder(target, aktor),
+      );
+      if (patch) ubahOrderLokal(orderId, patch);
+      return hasil;
+    },
+    [temukanOrderLokal, ubahOrderLokal],
+  );
 
   const updateListing = useCallback((id: string, updates: Partial<Listing>) => {
     setState((s) => ({
@@ -2541,6 +2676,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createOrder,
       verifikasiSerahTerima,
       setOrderStatus,
+      ajukanPembatalan,
+      tanggapiPembatalan,
+      bukaSengketa,
+      tandaiPembayaran,
+      konfirmasiPembayaran,
       refreshPesanBelumDibaca,
       refreshAntreanPindai,
       completeTour,
@@ -2571,6 +2711,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createOrder,
       verifikasiSerahTerima,
       setOrderStatus,
+      ajukanPembatalan,
+      tanggapiPembatalan,
+      bukaSengketa,
+      tandaiPembayaran,
+      konfirmasiPembayaran,
       refreshPesanBelumDibaca,
       refreshAntreanPindai,
       completeTour,

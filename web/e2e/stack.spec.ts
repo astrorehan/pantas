@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
-const ACTIVE_SESSION_KEY = "pantas-active-session-v1";
+const ACTIVE_SESSION_KEY = "pantas-active-session-v2";
 
 const sessions = {
   petani: {

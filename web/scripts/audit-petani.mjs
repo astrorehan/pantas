@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer";
 import lighthouse, { desktopConfig } from "lighthouse";
 
-const STORAGE_KEY = "pantas-store-v1:anon";
+const STORAGE_KEY = "pantas-store-v2:anon";
 const SESI_PETANI = {
   role: "petani",
   email: "petani@demo.pantas.id",

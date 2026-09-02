@@ -13,7 +13,7 @@
 
 // Sinkron dengan KEY_BASE + keyFor() di src/lib/store.tsx. Tanpa Supabase,
 // userId selalu undefined sehingga bucket-nya "anon".
-const STORAGE_KEY = "pantas-store-v1:anon";
+const STORAGE_KEY = "pantas-store-v2:anon";
 
 // Sama dengan AKUN_DEMO[0] di src/lib/demo.ts.
 const SESI_PETANI = {

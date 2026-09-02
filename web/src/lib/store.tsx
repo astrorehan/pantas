@@ -24,10 +24,11 @@ import {
   type FotoAntrean,
   type PesanBelumDibaca,
 } from "./data";
-import { AKUN_DEMO, DEMO_PASSWORD, DEMO_USERS } from "./demo";
+import { AKUN_DEMO, DEMO_USERS } from "./demo";
 import { hitungAntrean } from "./antrean-offline";
 import { FAKTOR_EMISI_BAWAAN, type FaktorEmisi } from "./emisi";
 import { getSupabase, isSupabaseConfigured, uploadCapture } from "./supabase";
+import { toast } from "@/components/ui/toast";
 import type { Database, Json } from "./database.types";
 import type {
   Grade,
@@ -259,14 +260,18 @@ const INITIAL: State = {
  * Per-user cache bucket. Without the user id in the key, a second account on
  * the same browser would read the first account's listings and orders.
  */
-const KEY_BASE = "pantas-store-v1";
-const ACTIVE_SESSION_KEY = "pantas-active-session-v1";
+// v2 memisahkan cache yang pernah mencampur seed demo dengan baris Supabase.
+// Bucket lama sengaja tidak dimigrasikan: asal tiap barisnya tidak dapat
+// dibuktikan, sehingga membawanya maju akan menghidupkan kembali masalah #10.
+const KEY_BASE = "pantas-store-v2";
+const ACTIVE_SESSION_KEY = "pantas-active-session-v2";
 const DEMO_ORDERS_KEY = "pantas-demo-orders-v1";
 const SYNC_CHANNEL_NAME = "pantas-order-sync-channel";
 
 const keyFor = (uid?: string) => `${KEY_BASE}:${uid ?? "anon"}`;
 
 function getStoredDemoOrders(): Order[] {
+  if (isSupabaseConfigured) return [];
   if (typeof window === "undefined") return DEMO_ORDERS as Order[];
   try {
     const raw = localStorage.getItem(DEMO_ORDERS_KEY);
@@ -282,6 +287,7 @@ function getStoredDemoOrders(): Order[] {
 }
 
 function saveStoredDemoOrders(orders: Order[]) {
+  if (isSupabaseConfigured) return;
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(DEMO_ORDERS_KEY, JSON.stringify(orders));
@@ -376,6 +382,7 @@ const DEFAULT_DEMO_PENAWARAN: Penawaran[] = [
 ];
 
 function getStoredDemoPenawaran(): Penawaran[] {
+  if (isSupabaseConfigured) return [];
   if (typeof window === "undefined") return DEFAULT_DEMO_PENAWARAN;
   try {
     const raw = localStorage.getItem(DEMO_PENAWARAN_KEY);
@@ -391,6 +398,7 @@ function getStoredDemoPenawaran(): Penawaran[] {
 }
 
 function saveStoredDemoPenawaran(penawaran: Penawaran[]) {
+  if (isSupabaseConfigured) return;
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(DEMO_PENAWARAN_KEY, JSON.stringify(penawaran));
@@ -880,7 +888,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Shared demo orders for multi-role consistency
-    const allDemoOrders = getStoredDemoOrders();
+    const allDemoOrders = isSupabaseConfigured ? [] : getStoredDemoOrders();
     const userDemoOrders = filterOrdersForUser(allDemoOrders, activeSesi);
 
     // Merge saved orders with shared demo orders
@@ -902,7 +910,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const finalOrders = Array.from(mergedOrdersMap.values());
 
     // Shared demo penawaran for multi-role consistency
-    const allDemoPenawaran = getStoredDemoPenawaran();
+    const allDemoPenawaran = isSupabaseConfigured ? [] : getStoredDemoPenawaran();
     const userDemoPenawaran = filterPenawaranForUser(allDemoPenawaran, activeSesi);
 
     const existingPenawaran = saved?.myPenawaran ?? [];
@@ -925,13 +933,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     // Default demo listings/scans if demo petani
     let initialListings = saved?.myListings ?? [];
-    if (initialListings.length === 0 && activeSesi?.role === "petani") {
+    if (!isSupabaseConfigured && initialListings.length === 0 && activeSesi?.role === "petani") {
       initialListings = LISTINGS.filter(
         (l) => l.petani_id === activeSesi?.userId || l.petani === activeSesi?.nama
       );
     }
     let initialScans = saved?.scans ?? [];
-    if (initialScans.length === 0 && activeSesi?.role === "petani") {
+    if (!isSupabaseConfigured && initialScans.length === 0 && activeSesi?.role === "petani") {
       initialScans = DEMO_SCANS.map((s) => ({
         id: s.id,
         tanggal: s.tanggal,
@@ -1014,8 +1022,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             setState((s) => ({ ...s, sesi: null }));
           }
         }
-      } catch {
-        /* ignore network/auth errors in offline/demo session */
+      } catch (error) {
+        console.error("[pantas] verifikasi sesi Supabase gagal:", error);
+        toast.jaringan(
+          "Sesi belum dapat diverifikasi",
+          "Cache akun dipertahankan; aplikasi tidak beralih ke mode demo.",
+        );
       }
     };
 
@@ -1183,32 +1195,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           .or(`petani_id.eq.${uid},pembeli_id.eq.${uid}`)
           .order("created_at", { ascending: false }),
       ]);
-      setState((s) => {
-        // Merge Supabase orders with local/demo orders
-        const dbOrders = ordersRes.error
-          ? s.orders
-          : ((ordersRes.data ?? []) as OrderRow[]).map(rowToOrder);
+      const galatHidrasi =
+        listingsRes.error ?? ordersRes.error ?? gradingsRes.error ?? penawaranRes.error;
+      if (galatHidrasi) {
+        console.error("[pantas] hidrasi data Supabase gagal:", galatHidrasi);
+        toast.jaringan(
+          "Data terbaru gagal dimuat",
+          "Aplikasi mempertahankan cache akun ini; data demo tidak digunakan.",
+        );
+        return;
+      }
 
-        const orderMap = new Map<string, Order>();
-        for (const o of dbOrders) orderMap.set(o.id, o);
-        for (const o of s.orders) {
-          if (!orderMap.has(o.id)) orderMap.set(o.id, o);
-        }
-        const mergedOrders = Array.from(orderMap.values());
-        saveStoredDemoOrders(mergedOrders);
-
-        return {
+      setState((s) => ({
           ...s,
-          myListings: listingsRes.error
-            ? s.myListings
-            : (listingsRes.data && listingsRes.data.length > 0)
-              ? (listingsRes.data).map(rowToListing)
-              : s.myListings,
-          orders: mergedOrders,
-          scans: gradingsRes.error
-            ? s.scans
-            : (gradingsRes.data && gradingsRes.data.length > 0)
-              ? (gradingsRes.data).map((g) => ({
+          myListings: (listingsRes.data ?? []).map(rowToListing),
+          orders: ((ordersRes.data ?? []) as OrderRow[]).map(rowToOrder),
+          scans: (gradingsRes.data ?? []).map((g) => ({
                 id: g.id,
                 tanggal: g.created_at,
                 komoditas: g.komoditas,
@@ -1220,13 +1222,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 foto: fotoDariHasil(g.hasil),
                 hash_audit: g.hash_audit ?? undefined,
                 hasil: (g.hasil as unknown as LaporanGrading) ?? undefined,
-              }))
-              : s.scans,
-          myPenawaran: penawaranRes.error
-            ? s.myPenawaran
-            : (penawaranRes.data ?? []).map(rowToPenawaran),
-        };
-      });
+              })),
+          myPenawaran: (penawaranRes.data ?? []).map(rowToPenawaran),
+        }));
     })();
   }, [state.sesi]);
 
@@ -1238,8 +1236,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       try {
         const faktorEmisi = await getFaktorEmisi();
         if (!batal) setState((s) => ({ ...s, faktorEmisi }));
-      } catch {
-        /* fallback ke FAKTOR_EMISI_BAWAAN */
+      } catch (error) {
+        console.error("[pantas] faktor emisi gagal dimuat:", error);
+        if (isSupabaseConfigured) {
+          toast.jaringan(
+            "Faktor emisi belum diperbarui",
+            "Nilai bawaan yang bersitasi tetap ditampilkan sebagai cadangan lokal.",
+          );
+        }
       }
     };
     if (typeof window !== "undefined") {
@@ -1267,19 +1271,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const currentKey = keyFor(sesi.userId);
     storageKey.current = currentKey;
 
-    // Retrieve shared demo orders for this user
-    const allDemoOrders = getStoredDemoOrders();
+    // Baris contoh hanya hidup pada instalasi yang sengaja tanpa Supabase.
+    const allDemoOrders = isSupabaseConfigured ? [] : getStoredDemoOrders();
     const userOrders = filterOrdersForUser(allDemoOrders, sesi);
 
     // Initial demo listings if petani
     let initialListings: Listing[] = [];
-    if (sesi.role === "petani") {
+    if (!isSupabaseConfigured && sesi.role === "petani") {
       initialListings = LISTINGS.filter(
         (l) => l.petani_id === sesi.userId || l.petani === sesi.nama
       );
     }
     let initialScans: Scan[] = [];
-    if (sesi.role === "petani") {
+    if (!isSupabaseConfigured && sesi.role === "petani") {
       initialScans = DEMO_SCANS.map((s) => ({
         id: s.id,
         tanggal: s.tanggal,
@@ -1315,11 +1319,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       fallbackRole: Role,
     ): Promise<Sesi> => {
       const supabase = await getSupabase();
-      const { data: profil } = await supabase!
+      const { data: profil, error } = await supabase!
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .maybeSingle();
+      if (error) throw new Error("Profil akun gagal dimuat.", { cause: error });
       return {
         // Peran di profil menang: satu akun tetap satu peran.
         role: (profil?.peran as Role) ?? fallbackRole,
@@ -1361,29 +1366,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        // If it's a demo account and demo password matches, fallback smoothly to demo session
-        if (demoAkun && password === DEMO_PASSWORD) {
-          return pakaiSesi({
-            role: demoAkun.role,
-            email: demoAkun.email,
-            nama: demoAkun.nama,
-            userId: demoAkun.userId,
-            lokasi: demoAkun.lokasi,
-          });
-        }
         return { sesi: null, error: pesanAuth(error.message) };
       }
 
       if (!data.user) {
-        if (demoAkun) {
-          return pakaiSesi({
-            role: demoAkun.role,
-            email: demoAkun.email,
-            nama: demoAkun.nama,
-            userId: demoAkun.userId,
-            lokasi: demoAkun.lokasi,
-          });
-        }
         return { sesi: null, error: "Gagal masuk. Coba lagi." };
       }
 
@@ -1538,6 +1524,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const gambarUrl = fields.gambar.startsWith("data:")
           ? await uploadCapture(fields.gambar, sesi.userId!)
           : null;
+        if (fields.gambar.startsWith("data:") && !gambarUrl) {
+          toast.galat(
+            "Foto pindaian belum terunggah",
+            "Hasil grading tetap disimpan tanpa foto server; salinan foto hanya ada di perangkat ini.",
+          );
+        }
         // annotated_img (data URL besar) tidak ikut disimpan ke jsonb. Agregat
         // multi-foto tidak punya bidang itu, jadi penghapusannya no-op di sana.
         const hasilBersih: Record<string, unknown> = { ...hasil };
@@ -1559,7 +1551,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           })
           .select("id")
           .maybeSingle();
-        if (error) console.warn("[pantas] simpan grading gagal:", error.message);
+        if (error) {
+          console.warn("[pantas] simpan grading gagal:", error.message);
+          toast.galat(
+            "Pindaian belum tersimpan ke akun",
+            "Salinan lokal tetap tersedia di perangkat ini. Coba sinkronkan lagi saat koneksi pulih.",
+          );
+        }
         if (data?.id) setState((s) => ({ ...s, lastGradingId: data.id }));
       })();
     },
@@ -1622,16 +1620,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           let gambar = asal;
           if (asal.startsWith("data:")) {
             const url = await uploadCapture(asal, sesi.userId!);
-            if (url) {
-              gambar = url;
-              const ids = new Set(listings.map((l) => l.id));
-              setState((s) => ({
-                ...s,
-                myListings: s.myListings.map((l) =>
-                  ids.has(l.id) ? { ...l, gambar: url } : l,
-                ),
-              }));
+            if (!url) {
+              toast.galat(
+                "Listing belum tersimpan di server",
+                "Foto gagal diunggah. Listing lokal tidak diterbitkan dengan data foto mentah.",
+              );
+              return;
             }
+            gambar = url;
+            const ids = new Set(listings.map((l) => l.id));
+            setState((s) => ({
+              ...s,
+              myListings: s.myListings.map((l) =>
+                ids.has(l.id) ? { ...l, gambar: url } : l,
+              ),
+            }));
           }
           const { error } = await supabase.from("listings").insert(
             listings.map((l) => ({
@@ -1650,8 +1653,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               catatan_ai: l.catatan_ai ?? null,
             })),
           );
-          if (error)
+          if (error) {
             console.warn("[pantas] terbit listing ke DB gagal:", error.message);
+            toast.galat(
+              "Listing belum tersimpan di server",
+              "Listing lokal ditandai di perangkat ini, tetapi belum dapat dilihat pengguna lain.",
+            );
+          }
         })();
       }
       return listings;
@@ -1674,9 +1682,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const createOrder = useCallback((l: Listing, qty: number): Order => {
     const sesi = stateRef.current.sesi;
-    const pembeliId = sesi?.userId || DEMO_USERS.pembeli.userId;
-    const petaniId = l.petani_id || DEMO_USERS.petani.userId;
-    const pembeliNama = sesi?.nama || DEMO_USERS.pembeli.nama;
+    const pembeliId =
+      sesi?.userId ?? (isSupabaseConfigured ? undefined : DEMO_USERS.pembeli.userId);
+    const petaniId =
+      l.petani_id ?? (isSupabaseConfigured ? undefined : DEMO_USERS.petani.userId);
+    const pembeliNama =
+      sesi?.nama ?? (isSupabaseConfigured ? "Pembeli PANTAS" : DEMO_USERS.pembeli.nama);
 
     const order: Order = {
       id: `PNT-${Math.floor(100 + Math.random() * 899)}`,
@@ -1704,7 +1715,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // Save to shared demo orders and broadcast
     updateSingleDemoOrder(order);
 
-    if (isSupabaseConfigured && pembeliId && petaniId) {
+    if (isSupabaseConfigured && (!pembeliId || !petaniId)) {
+      toast.galat(
+        "Pesanan belum tersimpan",
+        "Identitas pembeli atau petani tidak lengkap. Muat ulang data sebelum mencoba lagi.",
+      );
+    } else if (isSupabaseConfigured && pembeliId && petaniId) {
       void getSupabase().then((supabase) =>
         supabase
           ?.from("orders")
@@ -1722,8 +1738,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             total: order.total,
           })
           .then(({ error }) => {
-            if (error)
+            if (error) {
               console.warn("[pantas] simpan pesanan ke DB gagal:", error.message);
+              toast.galat(
+                "Pesanan belum tersimpan di server",
+                "Pesanan lokal tidak akan terlihat oleh pihak lain sampai penyimpanan berhasil.",
+              );
+            }
           }),
       );
     }
@@ -1793,7 +1814,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           .select();
         if (error) {
           console.warn("[pantas] simpan penawaran gagal:", error.message);
-          return;
+          const idSementara = new Set(newOffers.map((o) => o.id));
+          setState((s) => ({
+            ...s,
+            inquiry: Object.fromEntries(
+              items.map(({ listing, qty }) => [listing.id, { listing, qty }]),
+            ),
+            myPenawaran: s.myPenawaran.filter((p) => !idSementara.has(p.id)),
+          }));
+          toast.galat(
+            "Penawaran gagal dikirim",
+            "Daftar permintaan dipulihkan supaya Anda dapat mencoba lagi.",
+          );
+          throw new Error("Penawaran gagal disimpan.", { cause: error });
         }
         // Tukar id sementara dengan uuid yang benar-benar tersimpan, urut sama
         // dengan `rows` yang dikirim.
@@ -2021,11 +2054,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               p_berat_aktual_kg: berat ?? undefined,
             })
             .then(({ data, error }) => {
-              if (error || data !== true)
+              if (error || data !== true) {
                 console.warn(
                   "[pantas] verifikasi serah terima di DB gagal:",
                   error?.message ?? "kode ditolak server",
                 );
+                toast.galat(
+                  "Serah terima belum terverifikasi di server",
+                  "Status lokal tidak menjadi bukti transaksi sampai server mengonfirmasinya.",
+                );
+              }
             }),
         );
       }
@@ -2065,7 +2103,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (isSupabaseConfigured) {
       void getSupabase().then((supabase) =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (supabase as any)?.from("orders").update({ status }).eq("id", orderId),
+        (supabase as any)?.from("orders").update({ status }).eq("id", orderId).then(
+          ({ error }: { error: { message: string } | null }) => {
+            if (error) {
+              console.warn("[pantas] update status pesanan gagal:", error.message);
+              toast.galat("Status pesanan belum tersimpan di server");
+            }
+          },
+        ),
       );
     }
   }, []);
@@ -2186,7 +2231,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         if (Object.keys(payload).length > 0) {
           const { error } = await supabase.from("listings").update(payload).eq("id", id);
-          if (error) console.warn("[pantas] update listing di DB gagal:", error.message);
+          if (error) {
+            console.warn("[pantas] update listing di DB gagal:", error.message);
+            toast.galat("Perubahan listing belum tersimpan di server");
+          }
         }
       })();
     }
@@ -2223,7 +2271,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         // Fallback otomatis ke soft-delete ("ditutup") agar data integritas transaksi terlindungi.
         const { error } = await supabase.from("listings").delete().eq("id", id);
         if (error) {
-          await supabase.from("listings").update({ status: "ditutup" }).eq("id", id);
+          const { error: softDeleteError } = await supabase
+            .from("listings")
+            .update({ status: "ditutup" })
+            .eq("id", id);
+          if (softDeleteError) {
+            console.warn("[pantas] hapus listing di DB gagal:", softDeleteError.message);
+            toast.galat("Listing belum dapat dihapus dari server");
+          }
         }
       })();
     }
@@ -2241,7 +2296,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (!supabase) return;
         const dbStatus = status === "dijeda" ? "ditutup" : status === "terjual" ? "habis" : status;
         const { error } = await supabase.from("listings").update({ status: dbStatus }).eq("id", id);
-        if (error) console.warn("[pantas] toggle status listing di DB gagal:", error.message);
+        if (error) {
+          console.warn("[pantas] toggle status listing di DB gagal:", error.message);
+          toast.galat("Status listing belum tersimpan di server");
+        }
       })();
     }
   }, []);

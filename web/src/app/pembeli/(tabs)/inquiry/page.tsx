@@ -43,10 +43,15 @@ export default function InquiryPage() {
   const handleKirim = async () => {
     setLoading(true);
     haptic.success();
-    await store.buatPenawaran(tanggalAmbil, catatan);
-    setLoading(false);
-    setModalOpen(false);
-    router.push("/pembeli/pesanan");
+    try {
+      await store.buatPenawaran(tanggalAmbil, catatan);
+      setModalOpen(false);
+      router.push("/pembeli/pesanan");
+    } catch {
+      // Store sudah memulihkan inquiry dan menampilkan alasan kegagalan.
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

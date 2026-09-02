@@ -25,7 +25,7 @@
     "@supabase/supabase-js": "^2.110.7",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.24.0",
-    "next": "16.2.10",
+    "next": "16.3.4",
     "next-intl": "^4.13.4",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
@@ -43,13 +43,16 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.3.4",
     "fast-check": "^4.9.0",
     "proxy-agent": "^8.0.2",
     "puppeteer": "^25.4.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "nanoid": "3.3.18"
   },
   "browserslist": [
     "defaults and supports es6-module",
@@ -61,4 +64,3 @@
     "not dead"
   ]
 }
-

@@ -10,6 +10,7 @@ import { useTranslations } from "@/lib/i18n";
 function isNetworkFault(error: Error) {
   const m = `${error.name} ${error.message}`.toLowerCase();
   return (
+    m.includes("backendunavailable") ||
     m.includes("fetch") ||
     m.includes("network") ||
     m.includes("load failed") ||

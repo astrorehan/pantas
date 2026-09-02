@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { bearerTokenCocok, tokenCocok } from "@/lib/server-auth";
 
 /**
  * Restores the demo accounts to their seeded state (F-03).
@@ -23,14 +24,17 @@ function berwenang(req: Request): boolean {
   // Vercel Cron sends `Authorization: Bearer <CRON_SECRET>`; a manual call can
   // use the dedicated header instead.
   return (
-    req.headers.get("x-demo-reset-token") === token ||
-    auth === `Bearer ${token}`
+    tokenCocok(req.headers.get("x-demo-reset-token"), token) ||
+    bearerTokenCocok(auth, token)
   );
 }
 
 async function reset(req: Request) {
   if (!berwenang(req)) {
-    return Response.json({ error: "Tidak berwenang." }, { status: 401 });
+    return Response.json(
+      { error: "Tidak berwenang." },
+      { status: 401, headers: { "Cache-Control": "no-store" } },
+    );
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -38,7 +42,7 @@ async function reset(req: Request) {
   if (!url || !serviceKey) {
     return Response.json(
       { error: "SUPABASE_SERVICE_ROLE_KEY atau URL belum diset." },
-      { status: 503 },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 
@@ -49,7 +53,7 @@ async function reset(req: Request) {
   // `reset_demo` is not in database.types.ts until the types are regenerated
   // against migration 0003 + seed_demo.sql; the cast keeps this file honest
   // about that rather than widening the generated types by hand.
-  const { data, error } = await (
+  const { error } = await (
     admin.rpc as unknown as (
       fn: string,
     ) => Promise<{ data: unknown; error: { message: string } | null }>
@@ -57,9 +61,15 @@ async function reset(req: Request) {
 
   if (error) {
     console.error("[pantas] reset demo gagal:", error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json(
+      { error: "Reset data demo gagal. Periksa log server." },
+      { status: 500, headers: { "Cache-Control": "no-store" } },
+    );
   }
-  return Response.json({ ok: true, hasil: data });
+  return Response.json(
+    { ok: true },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 export const POST = reset;

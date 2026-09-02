@@ -1,4 +1,4 @@
-import { getSupabase } from "./supabase";
+import { gagalBackend, getSupabase, pastikanModeDemo } from "./supabase";
 import type { Grade, RingkasanPlatform, Rute, StatusPesanan } from "./types";
 import { DEMO_RUTE } from "./demo-data";
 import {
@@ -55,6 +55,7 @@ const RINGKASAN_DEMO: RingkasanPlatform = {
 export async function getRingkasanPlatform(): Promise<RingkasanPlatform> {
   const supabase = await getSupabase();
   if (!supabase) {
+    pastikanModeDemo("memuat ringkasan platform");
     await delay(150);
     return RINGKASAN_DEMO;
   }
@@ -73,11 +74,10 @@ export async function getRingkasanPlatform(): Promise<RingkasanPlatform> {
   // operator terbaca sebagai "tidak ada aktivitas" — kesimpulan yang salah dan
   // sulit dibedakan dari yang benar.
   if (profil.error || listing.error || pesanan.error || grading.error) {
-    console.warn(
-      "[pantas] getRingkasanPlatform fallback demo:",
-      pesanGalat(profil.error ?? listing.error ?? pesanan.error ?? grading.error),
+    gagalBackend(
+      "memuat ringkasan platform",
+      profil.error ?? listing.error ?? pesanan.error ?? grading.error,
     );
-    return RINGKASAN_DEMO;
   }
 
   const barisProfil = (profil.data ?? []) as { peran: string; is_demo: boolean }[];
@@ -179,9 +179,11 @@ export async function getListingsModerasi(): Promise<BarisModerasi[]> {
           (r.gradings as { hash_audit?: string } | null)?.hash_audit ?? null,
       }));
     }
-    if (error) console.warn("[pantas] getListingsModerasi fallback demo:", pesanGalat(error));
+    if (error) gagalBackend("memuat listing moderasi", error);
+    return [];
   }
 
+  pastikanModeDemo("memuat listing moderasi");
   await delay(150);
   return LISTINGS.map((l) => ({
     id: l.id,
@@ -242,6 +244,7 @@ export async function ubahStatusRute(
 ): Promise<{ ok: true } | { ok: false; pesan: string }> {
   const supabase = await getSupabase();
   if (!supabase || !POLA_UUID.test(id)) {
+    pastikanModeDemo("mengubah status rute");
     // Rute demo hidup di localStorage; naikkan di sana supaya perencana yang
     // berjalan tanpa basis data tetap punya siklus hidup yang utuh.
     return naikkanRuteLokal(id, status);
@@ -314,8 +317,7 @@ export async function getSengketaAktif(): Promise<BarisSengketa[]> {
     .order("diminta_pada", { ascending: true });
 
   if (error) {
-    console.warn("[pantas] getSengketaAktif:", pesanGalat(error));
-    return [];
+    gagalBackend("memuat sengketa aktif", error);
   }
 
   return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
@@ -381,8 +383,7 @@ export async function getAuditLog(batas = 100): Promise<BarisAudit[]> {
     .limit(batas);
 
   if (error) {
-    console.warn("[pantas] getAuditLog:", pesanGalat(error));
-    return [];
+    gagalBackend("memuat jejak audit", error);
   }
 
   return ((data ?? []) as Record<string, unknown>[]).map((r) => ({

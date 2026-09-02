@@ -1,4 +1,9 @@
-import { getSupabase, isSupabaseConfigured } from "./supabase";
+import {
+  gagalBackend,
+  getSupabase,
+  isSupabaseConfigured,
+  pastikanModeDemo,
+} from "./supabase";
 import type {
   AgregatBatch,
   DampakAgregat,
@@ -110,9 +115,10 @@ export async function getListings(): Promise<Listing[]> {
       .select("*")
       .eq("status", "tayang")
       .order("id");
-    if (!error && data && data.length > 0) return data.map(rowToListing);
-    if (error) console.warn("[pantas] getListings fallback demo:", error.message);
+    if (error) gagalBackend("memuat katalog", error);
+    return (data ?? []).map(rowToListing);
   }
+  pastikanModeDemo("memuat katalog");
   await delay(200);
   return LISTINGS.map(withJarak);
 }
@@ -125,9 +131,10 @@ export async function getListing(id: string): Promise<Listing | undefined> {
       .select("*")
       .eq("id", id)
       .maybeSingle();
-    if (!error && data) return rowToListing(data);
-    if (error) console.warn("[pantas] getListing fallback demo:", error.message);
+    if (error) gagalBackend("memuat detail listing", error);
+    return data ? rowToListing(data) : undefined;
   }
+  pastikanModeDemo("memuat detail listing");
   await delay(150);
   const demo = LISTINGS.find((l) => l.id === id);
   return demo ? withJarak(demo) : undefined;
@@ -432,9 +439,10 @@ export async function getRiwayatGrading(
       riwayatGradingCache.set(kunci, res);
       return res;
     }
-    console.warn("[pantas] getRiwayatGrading fallback lokal:", error.message);
+    gagalBackend("memuat riwayat grading", error);
   }
 
+  pastikanModeDemo("memuat riwayat grading");
   await delay(120);
   const cocok = cadanganLokal.filter((i) => cocokFilter(i, filter));
   const res: HalamanRiwayat = {
@@ -468,8 +476,9 @@ export async function getJumlahRiwayatGrading(
       .from("gradings")
       .select("id", { count: "exact", head: true });
     if (!error) return count ?? 0;
-    console.warn("[pantas] getJumlahRiwayatGrading fallback lokal:", error.message);
+    gagalBackend("menghitung riwayat grading", error);
   }
+  pastikanModeDemo("menghitung riwayat grading");
   return cadanganLokal;
 }
 
@@ -484,7 +493,8 @@ export async function getGradingDetail(
       .select("*, listings(id)")
       .eq("id", id)
       .maybeSingle();
-    if (!error && data) {
+    if (error) gagalBackend("memuat detail grading", error);
+    if (data) {
       return {
         item: {
           id: data.id,
@@ -502,7 +512,9 @@ export async function getGradingDetail(
         hasil: data.hasil as unknown as LaporanGrading,
       };
     }
+    return null;
   }
+  pastikanModeDemo("memuat detail grading");
   return null;
 }
 
@@ -735,7 +747,8 @@ export async function getRekomendasiHarga(opts?: {
     const row =
       data?.find((r) => r.komoditas === komoditas) ??
       data?.find((r) => r.komoditas === base);
-    if (!error && row) {
+    if (error) gagalBackend("memuat harga acuan", error);
+    if (row) {
       label = row.label;
       acuan = row.harga;
       const tgl = new Date(row.updated_at).toLocaleDateString("id-ID", {
@@ -743,8 +756,11 @@ export async function getRekomendasiHarga(opts?: {
         month: "short",
       });
       sumber = `${row.sumber}, ${tgl}`;
+    } else {
+      sumber = "Cadangan lokal karena harga acuan belum tersedia di basis data";
     }
   } else {
+    pastikanModeDemo("memuat harga acuan");
     await delay(300);
   }
 
@@ -1240,7 +1256,8 @@ export async function getGradingByHash(hash: string): Promise<GradingAuditRecord
       .eq("hash_audit", hash)
       .maybeSingle();
 
-    if (!error && data) {
+    if (error) gagalBackend("memuat laporan audit", error);
+    if (data) {
       const hasil = data.hasil as {
         ringkasan_batch?: GradingAuditRecord["ringkasan_batch"];
         kalibrasi?: GradingAuditRecord["kalibrasi"];
@@ -1248,17 +1265,18 @@ export async function getGradingByHash(hash: string): Promise<GradingAuditRecord
       } | null;
 
       // Petani info: separate query to avoid relying on FK alias
-      let petaniNama = "Petani PANTAS";
-      let petaniKab = "DIY";
-      const { data: profil } = await supabase
+      let petaniNama: string | undefined;
+      let petaniKab: string | undefined;
+      const { data: profil, error: profilError } = await supabase
         .from("profiles")
         .select("nama, lokasi")
         .eq("id", data.petani_id)
         .maybeSingle();
+      if (profilError) gagalBackend("memuat pemilik laporan audit", profilError);
       if (profil) {
-        petaniNama = profil.nama ?? petaniNama;
+        petaniNama = profil.nama ?? undefined;
         const parts = (profil.lokasi ?? "").split(",");
-        petaniKab = parts.length > 0 ? parts[parts.length - 1].trim() : petaniKab;
+        petaniKab = parts.at(-1)?.trim() || undefined;
       }
 
       return {
@@ -1277,25 +1295,32 @@ export async function getGradingByHash(hash: string): Promise<GradingAuditRecord
         publik: true,
       };
     }
+    return null;
   }
 
-  // Fallback demo audit record
+  pastikanModeDemo("memuat laporan audit");
+
+  // Mode demo hanya mengenali bukti contoh yang benar-benar terdaftar. Hash
+  // sembarang tidak pernah lagi diubah menjadi laporan yang tampak sah.
   await delay(150);
+  const demo = DEMO_SCANS.find((scan) => scan.hash_audit === hash);
+  if (!demo) return null;
   return {
-    hash_audit: hash.startsWith("sha256:") ? hash : `sha256:${hash}`,
-    komoditas: "tomato_sayur",
-    komoditas_label: "Tomat Sayur Merapi",
-    grade_dominan: "A",
-    objek_terdeteksi: 24,
+    hash_audit: demo.hash_audit!,
+    komoditas: demo.komoditas,
+    komoditas_label: demo.komoditas_label,
+    grade_dominan: demo.grade_dominan,
+    objek_terdeteksi: demo.objek,
     ringkasan_batch: {
-      komposisi: { A: 0.75, B: 0.21, C: 0.04 },
-      skor_keseragaman: 0.88,
+      komposisi: { [demo.grade_dominan]: 1 },
+      skor_keseragaman: demo.skor ?? 0,
     },
-    kalibrasi: { referensi: "Koin Rp500 (Ø 27 mm)", px_per_mm2: 4.25, valid: true },
-    created_at: new Date().toISOString(),
-    petani_nama: "Pak Warsono",
+    kalibrasi: { referensi: "Tidak tersedia pada data demo", valid: false },
+    foto_terproses: demo.foto,
+    created_at: demo.tanggal,
+    petani_nama: "Akun demo PANTAS",
     petani_kabupaten: "Sleman, DI Yogyakarta",
-    gambar_url: "/img/tomat.jpg",
+    gambar_url: demo.gambar,
     publik: true,
   };
 }
@@ -1397,8 +1422,10 @@ export async function getPengirimanList(): Promise<Pengiriman[]> {
   if (supabase) {
     const client = supabase as unknown as DynamicSupabase;
     const { data, error } = await client.from("pengiriman").select("*");
-    if (!error && data && data.length > 0) return data as unknown as Pengiriman[];
+    if (error) gagalBackend("memuat daftar pengiriman", error);
+    return (data ?? []) as unknown as Pengiriman[];
   }
+  pastikanModeDemo("memuat daftar pengiriman");
   await delay(150);
   const { DEMO_PENGIRIMAN } = await bahanDemo();
   return DEMO_PENGIRIMAN;
@@ -1423,8 +1450,10 @@ export async function getPengirimanById(
       .eq("id", id)
       .limit(1);
     const baris = (data as unknown as Pengiriman[] | null)?.[0];
-    if (!error && baris) return baris;
+    if (error) gagalBackend("memuat detail pengiriman", error);
+    return baris ?? null;
   }
+  pastikanModeDemo("memuat detail pengiriman");
   await delay(80);
   const { DEMO_PENGIRIMAN } = await bahanDemo();
   return DEMO_PENGIRIMAN.find((p) => p.id === id) ?? null;
@@ -1447,8 +1476,10 @@ export async function getPengirimanOrder(
       .eq("order_id", orderId)
       .limit(1);
     const baris = (data as unknown as Pengiriman[] | null)?.[0];
-    if (!error && baris) return baris;
+    if (error) gagalBackend("memuat pengiriman pesanan", error);
+    return baris ?? null;
   }
+  pastikanModeDemo("memuat pengiriman pesanan");
   await delay(80);
   const { DEMO_PENGIRIMAN } = await bahanDemo();
   return pengirimanUntukOrder(DEMO_PENGIRIMAN, orderId);
@@ -1485,6 +1516,7 @@ export async function simpanChecklistPengiriman(
     return { error: null };
   }
 
+  pastikanModeDemo("menyimpan checklist pengiriman");
   // Mode demo: disimpan di objek dalam memori supaya layar tetap konsisten
   // selama sesi berjalan.
   const { DEMO_PENGIRIMAN } = await bahanDemo();
@@ -1512,33 +1544,37 @@ export async function getChecklistUntukHash(hash: string): Promise<{
   if (supabase) {
     const client = supabase as unknown as DynamicSupabase;
 
-    const { data: grading } = await client
+    const { data: grading, error: gradingError } = await client
       .from("gradings")
       .select("id, komoditas")
       .eq("hash_audit", hash)
       .maybeSingle();
+    if (gradingError) gagalBackend("memuat grading untuk checklist", gradingError);
     if (!grading) return null;
 
     const g = grading as unknown as { id: string; komoditas: string };
-    const { data: listing } = await client
+    const { data: listing, error: listingError } = await client
       .from("listings")
       .select("id")
       .eq("grading_id", g.id)
       .maybeSingle();
+    if (listingError) gagalBackend("memuat listing untuk checklist", listingError);
     if (!listing) return null;
 
-    const { data: order } = await client
+    const { data: order, error: orderError } = await client
       .from("orders")
       .select("id")
       .eq("listing_id", (listing as unknown as { id: string }).id)
       .maybeSingle();
+    if (orderError) gagalBackend("memuat pesanan untuk checklist", orderError);
     if (!order) return null;
 
-    const { data: kirim } = await client
+    const { data: kirim, error: kirimError } = await client
       .from("pengiriman")
       .select("checklist")
       .eq("order_id", (order as unknown as { id: string }).id)
       .maybeSingle();
+    if (kirimError) gagalBackend("memuat checklist pengiriman", kirimError);
     if (!kirim) return null;
 
     const checklist =
@@ -1547,7 +1583,9 @@ export async function getChecklistUntukHash(hash: string): Promise<{
     return { checklist, komoditas: g.komoditas };
   }
 
+  pastikanModeDemo("memuat checklist pengiriman");
   await delay(80);
+  if (hash !== DEMO_SCANS[0]?.hash_audit) return null;
   const { DEMO_PENGIRIMAN } = await bahanDemo();
   const demo = DEMO_PENGIRIMAN[0];
   return demo.checklist
@@ -1670,8 +1708,10 @@ export async function getPenawaranList(role: "petani" | "pembeli", uid: string):
   if (supabase) {
     const client = supabase as unknown as DynamicSupabase;
     const { data, error } = await client.from("penawaran").select("*").eq(role === "petani" ? "petani_id" : "pembeli_id", uid);
-    if (!error && data) return data as unknown as Penawaran[];
+    if (error) gagalBackend("memuat daftar penawaran", error);
+    return (data ?? []) as unknown as Penawaran[];
   }
+  pastikanModeDemo("memuat daftar penawaran");
   await delay(150);
   const all = await getStoredDemoPenawaran();
   return all.filter((p) => (role === "petani" ? p.petani_id === uid : p.pembeli_id === uid));
@@ -1773,13 +1813,10 @@ export async function getRuteList(): Promise<Rute[]> {
       .from("rute")
       .select("*, rute_item(*, pengiriman(*))")
       .order("nomor", { ascending: false });
-    if (!error && data && data.length > 0) {
-      // Rute lokal ikut disertakan: pada mode campuran (Supabase aktif tapi
-      // tabel pengiriman masih kosong) rencana baru tersimpan di peramban, dan
-      // layar petani tetap harus menemukannya.
-      return [...(data as Record<string, unknown>[]).map(rowToRute), ...bacaRuteLokal()];
-    }
+    if (error) gagalBackend("memuat daftar rute", error);
+    return (data ?? []).map((row) => rowToRute(row as Record<string, unknown>));
   }
+  pastikanModeDemo("memuat daftar rute");
   await delay(150);
   return bacaRuteDemo();
 }
@@ -1884,6 +1921,7 @@ export async function simpanRute(input: RuteBaru): Promise<Rute> {
       : rowToRute({ ...ruteRow, rute_item: [] });
   }
 
+  pastikanModeDemo("menyimpan rute");
   // Mode demo: rakit objek Rute dari data lokal lalu simpan di localStorage.
   await delay(200);
   const semua = await bacaRuteDemo();
@@ -1925,9 +1963,9 @@ export function pesanGalat(error: unknown): string | null {
  *
  * Hasilnya di-cache selama proses berjalan: setiap layar dampak, kartu rute,
  * dan bagian landing membutuhkan tabel yang sama, dan isinya berubah dalam
- * hitungan bulan — bukan detik. `FAKTOR_EMISI_BAWAAN` dipakai bila Supabase
- * tidak dikonfigurasi atau kueri gagal, supaya angka di layar tetap punya
- * sitasi alih-alih menjadi nol.
+ * hitungan bulan — bukan detik. `FAKTOR_EMISI_BAWAAN` hanya dipakai pada mode
+ * demo; pemanggil UI boleh mempertahankannya sebagai cadangan lokal asalkan
+ * kegagalan backend ditampilkan secara eksplisit.
  */
 let cacheFaktorEmisi: FaktorEmisi[] | null = null;
 
@@ -1941,7 +1979,8 @@ export async function getFaktorEmisi(): Promise<FaktorEmisi[]> {
       .from("emisi_faktor")
       .select("*")
       .order("komoditas", { ascending: true });
-    if (!error && data && data.length > 0) {
+    if (error) gagalBackend("memuat faktor emisi", error);
+    if (data && data.length > 0) {
       cacheFaktorEmisi = (data as Record<string, unknown>[]).map((r) => ({
         komoditas: String(r.komoditas),
         faktor: Number(r.faktor),
@@ -1953,8 +1992,13 @@ export async function getFaktorEmisi(): Promise<FaktorEmisi[]> {
       }));
       return cacheFaktorEmisi;
     }
+    gagalBackend(
+      "memuat faktor emisi",
+      new Error("Tabel emisi_faktor tidak berisi konfigurasi."),
+    );
   }
 
+  pastikanModeDemo("memuat faktor emisi");
   cacheFaktorEmisi = FAKTOR_EMISI_BAWAAN;
   return cacheFaktorEmisi;
 }
@@ -1966,21 +2010,30 @@ export async function getDampakAgregat(): Promise<DampakAgregat> {
   if (supabase) {
     const client = supabase as unknown as DynamicSupabase;
     const { data, error } = await client.from("dampak_agregat").select("*").maybeSingle();
-    if (!error && data) {
+    if (error) gagalBackend("memuat dampak agregat", error);
+    if (data) {
       const d = data as Record<string, unknown>;
-      const kg = Number(d.kg_tersalurkan ?? 18450);
+      const kg = Number(d.kg_tersalurkan ?? 0);
       return {
-        transaksi_selesai: Number(d.transaksi_selesai ?? 142),
+        transaksi_selesai: Number(d.transaksi_selesai ?? 0),
         kg_tersalurkan: kg,
-        nilai_transaksi: Number(d.nilai_transaksi ?? 245000000),
-        km_dihemat: Number(d.km_dihemat ?? 1240),
+        nilai_transaksi: Number(d.nilai_transaksi ?? 0),
+        km_dihemat: Number(d.km_dihemat ?? 0),
         // View agregat tidak memecah berat per komoditas, jadi baris `lainnya`
         // — batas bawah kategori sayuran — dipakai untuk seluruh volume.
         co2e_ton_dihemat: bulatkanTon(tonCo2eDicegah([{ berat_kg: kg }], faktor)),
       };
     }
+    return {
+      transaksi_selesai: 0,
+      kg_tersalurkan: 0,
+      nilai_transaksi: 0,
+      km_dihemat: 0,
+      co2e_ton_dihemat: 0,
+    };
   }
 
+  pastikanModeDemo("memuat dampak agregat");
   await delay(150);
   return {
     transaksi_selesai: 142,
@@ -2029,11 +2082,10 @@ interface UlasanRow {
 /**
  * Percakapan tidak boleh jatuh ke data demo.
  *
- * Fungsi lain di berkas ini sengaja jatuh ke contoh saat backend gagal — katalog
- * kosong lebih buruk daripada katalog contoh. Chat kebalikannya: satu kalimat
- * karangan di tengah negosiasi harga tidak bisa dibedakan dari kalimat lawan
- * bicara yang sungguhan, dan pesan "terkirim" yang sebenarnya ditolak RLS
- * membuat kedua pihak menunggu balasan yang tidak akan pernah datang.
+ * Chat tidak boleh mengganti kegagalan backend dengan percakapan contoh: satu
+ * kalimat karangan di tengah negosiasi harga tidak bisa dibedakan dari kalimat
+ * lawan bicara yang sungguhan, dan pesan "terkirim" yang sebenarnya ditolak
+ * RLS membuat kedua pihak menunggu balasan yang tidak akan pernah datang.
  *
  * Jadi begitu Supabase terpasang, hanya isi Supabase yang boleh tampil, dan
  * kegagalan harus terlihat.
@@ -2058,7 +2110,7 @@ export async function getPesanList(params: { order_id?: string; penawaran_id?: s
   }
 
   // Klien gagal dimuat padahal env-nya ada: itu kegagalan, bukan mode demo.
-  if (isSupabaseConfigured) throw new Error("Klien Supabase tidak tersedia");
+  if (isSupabaseConfigured) gagalBackend("memuat percakapan");
 
   await delay(100);
   const { DEMO_PESAN } = await bahanDemo();
@@ -2275,8 +2327,6 @@ export interface PesanBelumDibaca {
   penawaran: number;
 }
 
-const NOL_BELUM_DIBACA: PesanBelumDibaca = { total: 0, pesanan: 0, penawaran: 0 };
-
 function pilahBelumDibaca(
   rows: { order_id: string | null; penawaran_id: string | null }[],
 ): PesanBelumDibaca {
@@ -2300,15 +2350,13 @@ export async function hitungPesanBelumDibaca(
       .select("order_id, penawaran_id")
       .eq("penerima_id", penerima_id)
       .eq("dibaca", false);
-    if (!error) {
-      return pilahBelumDibaca(
-        (data ?? []) as { order_id: string | null; penawaran_id: string | null }[],
-      );
-    }
-    return NOL_BELUM_DIBACA;
+    if (error) gagalBackend("menghitung pesan belum dibaca", error);
+    return pilahBelumDibaca(
+      (data ?? []) as { order_id: string | null; penawaran_id: string | null }[],
+    );
   }
 
-  if (isSupabaseConfigured) return NOL_BELUM_DIBACA;
+  pastikanModeDemo("menghitung pesan belum dibaca");
 
   await delay(60);
   const { DEMO_PESAN } = await bahanDemo();
@@ -2637,6 +2685,7 @@ export async function kirimUlasan(
     };
   }
 
+  pastikanModeDemo("mengirim ulasan");
   // Mode demo tanpa Supabase: keunikan order + penilai tetap ditegakkan supaya
   // perilakunya sama dengan basis data.
   const { DEMO_ULASAN } = await bahanDemo();
@@ -2669,14 +2718,17 @@ export async function getUlasanPesanan(order_id: string): Promise<Ulasan[]> {
       .from("ulasan")
       .select("*, profiles:penilai_id(nama)")
       .eq("order_id", order_id);
-    if (!error && data) {
+    if (error) gagalBackend("memuat ulasan pesanan", error);
+    if (data) {
       return (data as unknown as UlasanRow[]).map((row) => ({
         ...row,
         komentar: row.komentar ?? undefined,
         penilai_nama: row.profiles?.nama ?? "Pengguna PANTAS",
       }));
     }
+    return [];
   }
+  pastikanModeDemo("memuat ulasan pesanan");
   await delay(100);
   const { DEMO_ULASAN } = await bahanDemo();
   return DEMO_ULASAN.filter((u) => u.order_id === order_id);
@@ -2687,14 +2739,17 @@ export async function getUlasanList(user_id: string): Promise<Ulasan[]> {
   if (supabase) {
     const client = supabase as unknown as DynamicSupabase;
     const { data, error } = await client.from("ulasan").select("*, profiles:penilai_id(nama)").eq("dinilai_id", user_id);
-    if (!error && data) {
+    if (error) gagalBackend("memuat daftar ulasan", error);
+    if (data) {
       return (data as unknown as UlasanRow[]).map((row) => ({
         ...row,
         komentar: row.komentar ?? undefined,
         penilai_nama: row.profiles?.nama ?? "Pengguna PANTAS",
       }));
     }
+    return [];
   }
+  pastikanModeDemo("memuat daftar ulasan");
   await delay(100);
   const { DEMO_ULASAN } = await bahanDemo();
   return DEMO_ULASAN.filter((u) => u.dinilai_id === user_id);

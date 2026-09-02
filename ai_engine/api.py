@@ -17,6 +17,7 @@ Deploy: Hugging Face Spaces (Docker) — lihat Dockerfile di folder ini.
 
 import base64
 import json
+import os
 import threading
 import time
 from collections import deque
@@ -32,23 +33,55 @@ from model import PantasModel
 
 app = FastAPI(title="PANTAS Grading API", version="1.0.0")
 
-# Frontend Vercel + dev lokal. Kredensial tidak dipakai, jadi wildcard aman.
+# Origin browser dibatasi: endpoint inferensi memang tidak memakai kredensial,
+# tetapi wildcard membuat situs mana pun dapat memakai CPU model sebagai proxy
+# gratis. Deployment lain dapat menambah origin lewat PANTAS_ALLOWED_ORIGINS
+# (daftar dipisahkan koma) tanpa mengubah image.
+_origin_tambahan = [
+    origin.strip()
+    for origin in os.getenv("PANTAS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://pantas-ai.vercel.app",
+    *_origin_tambahan,
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+    max_age=600,
 )
 
 # Muat sekali saat startup; PantasModel meng-cache model YOLO per komoditas.
 model = PantasModel()
 
-VALID_COMMODITY_BASES = {"chili", "tomato", "carrot", "cucumber"}
+VALID_COMMODITIES = {
+    "carrot",
+    "chili_hijau_besar",
+    "chili_merah_besar",
+    "chili_merah_keriting",
+    "chili_rawit",
+    "cucumber_baby",
+    "cucumber_lokal",
+    "tomato_beef",
+    "tomato_ceri",
+    "tomato_merah",
+    "tomato_sayur",
+}
+VALID_COMMODITY_BASES = {commodity.split("_")[0] for commodity in VALID_COMMODITIES}
 
 # Batas atas /predict/batch. F-12 bicara tentang 3–5 sudut; di atas itu waktu
 # inferensinya melewati anggaran latensi NFR-06 dan payload balasannya (satu
 # foto beranotasi per sudut) jadi berat untuk jaringan ponsel di kebun.
 MAX_FOTO_BATCH = 5
+# Payload kamera jauh di bawah 10 MiB. Batas ini menghentikan berkas besar
+# sebelum OpenCV mendekode dan mengalokasikan matriks gambarnya.
+MAX_IMAGE_BYTES = 10 * 1024 * 1024
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 # ---------------------------------------------------------------- Telemetri
 #
@@ -82,12 +115,26 @@ def _galat(message: str) -> dict:
 
 def _cek_komoditas(commodity: str) -> dict | None:
     """None berarti lolos; selain itu payload galat yang siap dikembalikan."""
-    if commodity.split("_")[0] not in VALID_COMMODITY_BASES:
+    if commodity not in VALID_COMMODITIES:
         return _galat(
             f"Komoditas '{commodity}' belum didukung. "
-            f"Pilihan: {sorted(VALID_COMMODITY_BASES)}."
+            f"Pilihan: {sorted(VALID_COMMODITIES)}."
         )
     return None
+
+
+async def _baca_gambar(image: UploadFile) -> tuple[bytes | None, dict | None]:
+    """Baca satu unggahan dengan batas tipe dan ukuran sebelum inferensi."""
+    content_type = (image.content_type or "").lower()
+    if content_type and content_type not in ALLOWED_IMAGE_TYPES:
+        return None, _galat("Format gambar harus JPEG, PNG, atau WebP.")
+
+    raw = await image.read(MAX_IMAGE_BYTES + 1)
+    if not raw:
+        return None, _galat("File gambar kosong.")
+    if len(raw) > MAX_IMAGE_BYTES:
+        return None, _galat("Ukuran tiap foto maksimal 10 MiB.")
+    return raw, None
 
 
 def _parse_roi(roi: str | None):
@@ -101,8 +148,16 @@ def _parse_roi(roi: str | None):
         return None, None
     try:
         parsed = json.loads(roi)
+        if (
+            not isinstance(parsed, list)
+            or len(parsed) != 4
+            or any(isinstance(v, bool) or not isinstance(v, (int, float)) for v in parsed)
+            or any(not float(v).is_integer() for v in parsed)
+        ):
+            raise ValueError
         roi_tuple = tuple(int(v) for v in parsed)
-        if len(roi_tuple) != 4:
+        x, y, w, h = roi_tuple
+        if x < 0 or y < 0 or w <= 0 or h <= 0:
             raise ValueError
         return roi_tuple, None
     except (ValueError, TypeError):
@@ -200,7 +255,10 @@ async def predict(
     if salah_roi:
         return salah_roi
 
-    return _nilai(await image.read(), commodity, roi_tuple)
+    raw, salah_gambar = await _baca_gambar(image)
+    if salah_gambar:
+        return salah_gambar
+    return _nilai(raw, commodity, roi_tuple)
 
 
 @app.post("/predict/batch")
@@ -242,7 +300,8 @@ async def predict_batch(
 
     per_foto = []
     for i, berkas in enumerate(images):
-        hasil = _nilai(await berkas.read(), commodity, daftar_roi[i])
+        raw, salah_gambar = await _baca_gambar(berkas)
+        hasil = salah_gambar or _nilai(raw, commodity, daftar_roi[i])
         per_foto.append({"indeks": i, "nama": berkas.filename, "hasil": hasil})
 
     # Agregat dihitung dari salinan tanpa foto beranotasi: hash gabungan harus

@@ -26,6 +26,28 @@ const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = Boolean(url && key);
 
+/** Galat aman untuk UI ketika backend nyata diharapkan tetapi tidak menjawab. */
+export class BackendUnavailableError extends Error {
+  constructor(operation: string, options?: { cause?: unknown }) {
+    super(`Layanan data tidak tersedia saat ${operation}. Coba lagi setelah koneksi pulih.`, options);
+    this.name = "BackendUnavailableError";
+  }
+}
+
+/**
+ * Demo hanya boleh aktif karena konfigurasi memang sengaja tidak dipasang.
+ * Begitu env Supabase ada, kegagalan atau respons tak sah harus terlihat dan
+ * tidak boleh diganti diam-diam dengan angka, transaksi, atau bukti contoh.
+ */
+export function gagalBackend(operation: string, cause?: unknown): never {
+  console.error(`[pantas] backend gagal saat ${operation}:`, cause);
+  throw new BackendUnavailableError(operation, { cause });
+}
+
+export function pastikanModeDemo(operation: string, cause?: unknown): void {
+  if (isSupabaseConfigured) gagalBackend(operation, cause);
+}
+
 let clientPromise: Promise<SupabaseClient<Database> | null> | null = null;
 
 /**

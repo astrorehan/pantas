@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.2.10-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.4-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -122,6 +122,8 @@ npm run dev
 ```
 
 Perintah tersebut menyalakan frontend di `http://localhost:3000` dan grading engine di `http://localhost:7860`, lalu mengarahkan frontend ke engine lokal secara otomatis. Menghentikan perintah juga menghentikan kedua service. Swagger UI tersedia di `http://localhost:7860/docs`.
+
+Deployment grading engine menerima origin browser tambahan melalui `PANTAS_ALLOWED_ORIGINS` (daftar URL yang dipisahkan koma). Origin lokal dan deployment PANTAS utama sudah diizinkan secara bawaan.
 
 Untuk verifikasi otomatis:
 

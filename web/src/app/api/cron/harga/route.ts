@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { KOMODITAS } from "@/lib/komoditas.generated";
 import type { Database } from "@/lib/database.types";
+import { bearerTokenCocok } from "@/lib/server-auth";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -127,16 +128,18 @@ async function ambilFeed(url: string): Promise<BarisHarga[] | null> {
 }
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  const isCronAuthorized =
-    process.env.NODE_ENV !== "production" ||
-    !process.env.CRON_SECRET ||
-    authHeader === `Bearer ${process.env.CRON_SECRET}`;
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return NextResponse.json(
+      { error: "CRON_SECRET belum dikonfigurasi." },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 
-  if (!isCronAuthorized) {
+  if (!bearerTokenCocok(request.headers.get("authorization"), cronSecret)) {
     return NextResponse.json(
       { error: "Unauthorized: Invalid CRON_SECRET token" },
-      { status: 401 },
+      { status: 401, headers: { "Cache-Control": "no-store" } },
     );
   }
 

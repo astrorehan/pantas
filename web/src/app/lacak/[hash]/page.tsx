@@ -18,6 +18,7 @@ import { PublicPage } from "@/components/marketing/page-shell";
 import { Badge, Card, GradeBadge, cx } from "@/components/ui";
 import { localeDariCookie } from "@/i18n/request";
 import { getChecklistUntukHash, getGradingByHash } from "@/lib/data";
+import { normalisasiAuditHash } from "@/lib/audit-hash";
 import { checklistUntuk, ringkasChecklist } from "@/lib/rantai-dingin";
 import { EstimasiBeratCard } from "@/components/estimasi-berat-card";
 import { PrintCrateLabelButton } from "@/components/print-crate-label-button";
@@ -29,7 +30,8 @@ export async function generateMetadata({
   params: Promise<{ hash: string }>;
 }): Promise<Metadata> {
   const { hash } = await params;
-  const decoded = decodeURIComponent(hash);
+  const decoded = normalisasiAuditHash(hash);
+  if (!decoded) return { title: "Laporan grading tidak ditemukan" };
   const record = await getGradingByHash(decoded);
   const t = await getTranslations("lacak");
 
@@ -54,7 +56,8 @@ export default async function LacakPage({
   params: Promise<{ hash: string }>;
 }) {
   const { hash } = await params;
-  const decoded = decodeURIComponent(hash);
+  const decoded = normalisasiAuditHash(hash);
+  if (!decoded) notFound();
   const record = await getGradingByHash(decoded);
   const t = await getTranslations("lacak");
   const tLogistik = await getTranslations("logistik");

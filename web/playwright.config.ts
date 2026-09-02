@@ -33,6 +33,7 @@ export default defineConfig({
         url: `${baseURL}/api/health`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        gracefulShutdown: { signal: "SIGTERM", timeout: 10_000 },
         stdout: "pipe",
         stderr: "pipe",
       },

@@ -16,12 +16,15 @@ Selamat datang di pusat dokumentasi resmi **PANTAS** (*Platform Sistem Sortasi M
 
 | Dokumen | Deskripsi & Cakupan | Tautan |
 | :--- | :--- | :--- |
+| 📘 **Dokumen Teknis Terpadu** | Kompilasi resmi dokumen pendukung teknis: Diagram Arsitektur, ERD Komprehensif & Kamus Data, RLS Matrix, Kontrak API, dan AI Engine. | [`docs/DOKUMEN_TEKNIS.md`](DOKUMEN_TEKNIS.md) |
 | 📋 **PRD (Product Requirements Document)** | Kontrak build lengkap: 72 fitur terindeks (F-ID), 12 Epic (EP-A s.d. EP-L), model data, NFR, roadmap, dan matriks rubrik lomba. | [`docs/PRD.md`](PRD.md) |
 | 📑 **Modular PRD Slices** | 30 potongan modular PRD yang terverifikasi *byte-for-byte* untuk navigasi cepat per bab dan per epic. | [`docs/prd/00-INDEX.md`](prd/00-INDEX.md) |
 | 🧠 **Spesifikasi AI Engine** | Penjelasan mendalam pipeline Dual-Stage YOLOv11, OpenCV Rule Engine, kalibrasi koin Rp500, gerbang plausibilitas, dan kartu rapor model. | [`docs/AI.md`](AI.md) & [`docs/AI_ENGINE.md`](AI_ENGINE.md) |
 | 🗄️ **Arsitektur Backend & Database** | Dokumentasi skema PostgreSQL Supabase, aturan Row-Level Security (RLS), seam arsitektur data, dan migrasi SQL. | [`docs/BACKEND.md`](BACKEND.md) |
 | 📊 **Pelacak Progres Fitur (Backlog)** | Pelacak status eksekusi 72 F-ID yang digenerate otomatis dari master PRD (93% selesai, 67/72 fitur). | [`docs/BACKLOG.md`](BACKLOG.md) |
 | 🔍 **Analisis Kesenjangan (Gap Analysis)** | Evaluasi menyeluruh terhadap kelengkapan fitur dan kepatuhan PRD. | [`docs/GAP_ANALYSIS.md`](GAP_ANALYSIS.md) |
+| 🎬 **Storyboard Video Demo (HTML)** | Storyboard interaktif dan siap cetak (*print-ready*) dengan pilihan **Alur Ringkas (3.5 Menit / 6 Adegan — Rekomendasi Cepat & Mudah)** dan **Alur Lengkap (7.5 Menit / 14 Adegan)**, dilengkapi stopwatch gladi resik, penyalin naskah 1-klik, dan checklist produksi persisten. | [`docs/STORYBOARD_DEMO.html`](STORYBOARD_DEMO.html) |
+| 📹 **Ketentuan Video Demo HoloDev** | Ringkasan spesifikasi, format nama file, platform unggah, dan rubrik video demo Guidebook HOLOGY 9.0. | [`docs/KETENTUAN_VIDEO_HOLODEV.md`](KETENTUAN_VIDEO_HOLODEV.md) |
 | 🎤 **Materi & Slide Pitch Deck** | Bank narasi presentasi 10 menit, bank tanya-jawab dewan juri, dan prompt pembuatan slide 16:9 berbasis HTML. | [`docs/MATERI_PRESENTASI.md`](MATERI_PRESENTASI.md) & [`docs/SLIDE_PRESENTASI.md`](SLIDE_PRESENTASI.md) |
 
 ---

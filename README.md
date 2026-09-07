@@ -12,7 +12,7 @@
 
 **Platform Sistem Sortasi Mutu Cerdas Berbasis Computer Vision & Marketplace Hortikultura Terintegrasi**
 
-[🌐 Kunjungi Aplikasi Live](https://pantas-ai.vercel.app) · [📖 Baca PRD Lengkap](docs/PRD.md) · [🧠 Whitepaper AI Engine](docs/AI.md) · [📊 Backlog & Status Fitur](docs/BACKLOG.md)
+[🌐 Kunjungi Aplikasi Live](https://pantas-ai.vercel.app) · [📘 Dokumen Teknis & ERD](docs/DOKUMEN_TEKNIS.md) · [📖 Baca PRD Lengkap](docs/PRD.md) · [🧠 Whitepaper AI Engine](docs/AI.md) · [📊 Backlog & Status Fitur](docs/BACKLOG.md)
 
 </div>
 

@@ -21,13 +21,14 @@ Dalam rantai pasok hortikultura tradisional di Indonesia, penaksiran mutu (*grad
 flowchart TD
     RawImg["📸 Foto Mentah Panen\n(Tumpukan Buah/Sayur + Koin Rp500)"]
     
-    subgraph Stage1 ["Stage 1: Blur & Quality Gate (Laplacian)"]
-        BlurCheck{"Varians Laplacian\n≥ Threshold?"}
-        BlurWarn["Peringatan Foto Buram / Motion Blur"]
+    subgraph Stage1 ["Stage 1: Pre-Flight Quality Gate (Multi-Check)"]
+        QualityGate{"Blur, Gelap, Silau,\natau Sudut Miring?"}
+        QualityWarn["Peringatan Foto Buram, Gelap,\nSilau, atau Kamera Miring"]
     end
     
-    subgraph Stage2 ["Stage 2: Metric Calibration (Koin Rp500)"]
+    subgraph Stage2 ["Stage 2: Metric Calibration & Tilt Gate (Koin Rp500)"]
         CoinDetect["Deteksi Koin Rp500\n(Hough Circle / Segmentasi)"]
+        TiltGate{"Evaluasi Kebundaran Koin\nRasio Sumbu < 0.70?"}
         CoinScale["Hitung Rasio Skala:\npx/mm dan mm²/px\n(Koin: Ø 27 mm, Area 572,56 mm²)"]
     end
     
@@ -99,6 +100,16 @@ Untuk mencegah kesalahan kalibrasi (misalnya koin tertutup sebagian sehingga ter
 Setiap hasil inferensi diserialisasi ke dalam format JSON kanonik (key terurut, angka dinormalisasi) dan di-hash menggunakan **SHA-256**:
 $$\text{Audit Hash} = \text{SHA-256}(\text{CanonicalJSON}(\text{GradingResult}))$$
 Hash ini dicetak ke sertifikat digital dan QR Code pada halaman publik `/lacak/[hash]`, menjamin bahwa laporan grading tidak dapat dimanipulasi oleh petani maupun pembeli setelah diterbitkan.
+
+### 3.6 Gerbang Kualitas Citra (*Pre-Flight Quality Gate & Tilt Check*)
+Sebelum inferensi berat YOLO dijalankan, citra melewati 4 pemeriksaan kualitas otomatis:
+1. **Ketajaman (Laplacian Blur Check):** Menolak foto dengan skor ketajaman $< 10$.
+2. **Kecerahan (Darkness Check):** Menolak foto dengan rerata kecerahan $< 20.0$ (kondisi gelap tanpa penerangan).
+3. **Silau (Glare Check):** Menolak foto jika $> 15\%$ piksel bernilai 255 murni akibat pantulan sinar langsung / flash.
+4. **Sudut Kemiringan (Tilt Check):** Mengevaluasi rasio sumbu minor/mayor koin ($\frac{b}{a}$). Jika $< 0,70$ (kemiringan kamera $> 45^\circ$), foto ditolak agar ukuran fisik tidak terdistorsi.
+
+### 3.7 Eksekusi Paralel Async Batch (`POST /predict/batch`)
+Endpoint `/predict/batch` memproses 2–5 foto sudut tumpukan panen secara bersamaan menggunakan thread pool non-blocking (`asyncio.to_thread` + `asyncio.gather`) dengan penguncian thread-safe pada pemuatan model (`threading.Lock()`), menjaga latensi tetap rendah selevel inferensi single-photo.
 
 ---
 

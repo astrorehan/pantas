@@ -177,7 +177,7 @@ class AutoCalibrator:
                 continue
 
             fill = area / (np.pi * radius * radius)
-            if fill < 0.65:
+            if fill < 0.45:
                 continue
 
             edge_score = self._circle_edge_score(edges, int(cx), int(cy), int(radius))

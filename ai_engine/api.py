@@ -15,6 +15,7 @@ Jalankan lokal:
 Deploy: Hugging Face Spaces (Docker) — lihat Dockerfile di folder ini.
 """
 
+import asyncio
 import base64
 import json
 import os
@@ -298,11 +299,19 @@ async def predict_batch(
                 return _galat(f"rois[{i}] harus [x, y, w, h] atau null.")
             daftar_roi[i] = roi_tuple
 
-    per_foto = []
-    for i, berkas in enumerate(images):
+    async def _proses_satu_foto(i: int, berkas: UploadFile, roi_tuple: tuple | None) -> dict:
         raw, salah_gambar = await _baca_gambar(berkas)
-        hasil = salah_gambar or _nilai(raw, commodity, daftar_roi[i])
-        per_foto.append({"indeks": i, "nama": berkas.filename, "hasil": hasil})
+        if salah_gambar:
+            hasil = salah_gambar
+        else:
+            hasil = await asyncio.to_thread(_nilai, raw, commodity, roi_tuple)
+        return {"indeks": i, "nama": berkas.filename, "hasil": hasil}
+
+    per_foto_tuples = await asyncio.gather(*[
+        _proses_satu_foto(i, berkas, daftar_roi[i])
+        for i, berkas in enumerate(images)
+    ])
+    per_foto = sorted(list(per_foto_tuples), key=lambda x: x["indeks"])
 
     # Agregat dihitung dari salinan tanpa foto beranotasi: hash gabungan harus
     # menutupi angka mutunya, bukan hasil kompresi JPEG yang bisa berbeda tiap

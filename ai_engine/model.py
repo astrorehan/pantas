@@ -12,6 +12,20 @@ from calibration import AutoCalibrator
 from weight_estimator import estimasi_berat
 from plausibilitas import periksa_skala
 from ultralytics import YOLO
+import threading
+from pathlib import Path
+import cv2
+import numpy as np
+
+# Tambahkan path ai_engine agar bisa membaca modul lain di folder ini
+ROOT_DIR = Path(__file__).parent
+sys.path.append(str(ROOT_DIR))
+
+from grading_engine import GradingEngine
+from calibration import AutoCalibrator
+from weight_estimator import estimasi_berat
+from plausibilitas import periksa_skala
+from ultralytics import YOLO
 
 class PantasModel:
     def __init__(self):
@@ -23,23 +37,28 @@ class PantasModel:
         self.yolo_models = {}
         self.yolo2_models = {}
         self.calibrator = AutoCalibrator()
+        self._lock = threading.Lock()
 
     def _get_yolo_model(self, commodity: str):
-        """Mekanisme Caching: Load model hanya jika belum ada di memori."""
+        """Mekanisme Caching Thread-Safe: Load model hanya jika belum ada di memori."""
         if commodity not in self.yolo_models:
-            model_path = ROOT_DIR / "export_models" / f"{commodity}_seg.pt"
-            if not model_path.exists():
-                raise FileNotFoundError(f"Model YOLO untuk '{commodity}' tidak ditemukan di {model_path}")
-            self.yolo_models[commodity] = YOLO(str(model_path))
+            with self._lock:
+                if commodity not in self.yolo_models:
+                    model_path = ROOT_DIR / "export_models" / f"{commodity}_seg.pt"
+                    if not model_path.exists():
+                        raise FileNotFoundError(f"Model YOLO untuk '{commodity}' tidak ditemukan di {model_path}")
+                    self.yolo_models[commodity] = YOLO(str(model_path))
         return self.yolo_models[commodity]
 
     def _get_yolo2_model(self, commodity: str):
-        """Mekanisme Caching: Load model YOLO 2 (Klasifikasi) hanya jika belum ada di memori."""
+        """Mekanisme Caching Thread-Safe: Load model YOLO 2 (Klasifikasi) hanya jika belum ada di memori."""
         if commodity not in self.yolo2_models:
-            model_path = ROOT_DIR / "export_models" / f"{commodity}_cls.pt"
-            if not model_path.exists():
-                raise FileNotFoundError(f"Model YOLO 2 (Klasifikasi) untuk '{commodity}' tidak ditemukan di {model_path}")
-            self.yolo2_models[commodity] = YOLO(str(model_path))
+            with self._lock:
+                if commodity not in self.yolo2_models:
+                    model_path = ROOT_DIR / "export_models" / f"{commodity}_cls.pt"
+                    if not model_path.exists():
+                        raise FileNotFoundError(f"Model YOLO 2 (Klasifikasi) untuk '{commodity}' tidak ditemukan di {model_path}")
+                    self.yolo2_models[commodity] = YOLO(str(model_path))
         return self.yolo2_models[commodity]
 
     def predict(self, img_array, commodity_specific: str, roi=None):
@@ -58,8 +77,23 @@ class PantasModel:
         import hashlib
         import json
         
-        # 0. Gerbang Kualitas Foto (Cek Blur)
+        # 0. Gerbang Kualitas Foto (Cek Kecerahan/Terlalu Gelap, Silau/Pantulan Cahaya, & Blur)
         gray_img = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
+        
+        mean_brightness = float(np.mean(gray_img))
+        if mean_brightness < 20.0:
+            return {
+                "status": "error",
+                "message": f"Foto ditolak (terlalu gelap). Kecerahan {int(mean_brightness)} di bawah standar (minimal 20). Mohon beri pencahayaan cukup."
+            }, img_array
+
+        glare_ratio = float(np.sum(gray_img >= 250)) / float(gray_img.size)
+        if glare_ratio > 0.15:
+            return {
+                "status": "error",
+                "message": f"Foto ditolak (terlalu silau/pantulan cahaya). Area silau {glare_ratio * 100:.1f}% melebihi batas 15%. Mohon atur pencahayaan agar tidak silau."
+            }, img_array
+
         blur_score = cv2.Laplacian(gray_img, cv2.CV_64F).var()
         if blur_score < 10:
             return {
@@ -76,6 +110,35 @@ class PantasModel:
         pixel_ratio, coin_contour = self.calibrator.get_pixel_ratio(img_array, roi=roi)
         is_calibrated = coin_contour is not None
         
+        # 1b. Gerbang Kualitas Foto (Cek Sudut Kemiringan Koin)
+        if is_calibrated and coin_contour is not None:
+            try:
+                if len(coin_contour) >= 5:
+                    ellipse = cv2.fitEllipse(coin_contour)
+                    d1, d2 = ellipse[1]
+                    minor_axis = min(d1, d2)
+                    major_axis = max(d1, d2)
+                else:
+                    x_c, y_c, w_c, h_c = cv2.boundingRect(coin_contour)
+                    minor_axis = min(w_c, h_c)
+                    major_axis = max(w_c, h_c)
+                
+                tilt_ratio = (minor_axis / major_axis) if major_axis > 0 else 1.0
+            except Exception:
+                tilt_ratio = 1.0
+
+            if tilt_ratio < 0.70:
+                return {
+                    "status": "error",
+                    "message": f"Foto ditolak (sudut pengambilan miring). Koin terdeteksi memiliki rasio kebundaran {tilt_ratio:.2f} (< 0.70), menunjukkan kamera terlalu miring (>45°). Mohon posisikan kamera tegak lurus tepat di atas tumpukan panen.",
+                    "kalibrasi": {
+                        "referensi": "koin_500",
+                        "valid": False,
+                        "tilt_ratio": round(tilt_ratio, 2),
+                        "catatan": "Koin terdeteksi terlalu miring (>45°)"
+                    }
+                }, img_array
+
         annotated_img = img_array.copy()
         
         # Gambar panduan koin

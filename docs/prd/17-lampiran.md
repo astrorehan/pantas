@@ -42,7 +42,7 @@
 
 | # | Pertanyaan | Butuh keputusan sebelum |
 | :--- | :--- | :--- |
-| Q-3b | Pembagian kontribusi per anggota tim: Ammar (AI Engineer), Raihan (Fullstack Dev/Lead), Rafi (Product Ideation) | Final Submission 7 Sept |
+| Q-3b | Pembagian kontribusi per anggota tim: Ammar (Team Lead & AI Engineer), Raihan (Fullstack Developer), Rafi (Product Ideation) | Final Submission 7 Sept |
 | Q-4 | Apakah APK (TWA) dibuat sebagai bonus? Guidebook hanya mewajibkan APK untuk produk **berbasis mobile**; PANTAS dikumpulkan sebagai produk **berbasis web**, jadi URL hosting aktif sudah memenuhi syarat | Final Submission 7 Sept |
 | Q-7 | Faktor tomat: pakai `0,53` konservatif atau tampilkan rentang `0,53–2,09`? Rekomendasi PRD: konservatif (§14.3) | Sebelum F-65 mendarat |
 | Q-8 | Apakah `harga_acuan` untuk Yogyakarta diisi dari PIHPS wilayah DIY, bukan rata-rata nasional? | Sebelum F-22 |

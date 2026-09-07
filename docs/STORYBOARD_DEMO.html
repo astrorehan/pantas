@@ -1,0 +1,3219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Storyboard Video Demo PANTAS — HoloDev HOLOGY 9.0</title>
+  
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* -------------------------------------------------------------
+       PANTAS DESIGN TOKENS (Warm Paper & Forest Architecture)
+       ------------------------------------------------------------- */
+    :root {
+      --canvas: #f6f3ed;
+      --canvas-subtle: #eae4d9;
+      --surface: #ffffff;
+      --surface-raised: #fcfbf9;
+      --sunken: #ede6dc;
+      --line: #d8cebc;
+      --line-strong: #b9aa93;
+      
+      --ink: #1c1915;
+      --ink-muted: #575043;
+      --ink-subtle: #847a6b;
+      
+      /* Brand Palette */
+      --brand: #1e5a2e;
+      --brand-deep: #143e20;
+      --brand-tint: #eaf5ed;
+      --brand-tint-strong: #d2ebd8;
+      --brand-border: #a4d5b0;
+      
+      /* Clay Accent */
+      --clay: #a36224;
+      --clay-tint: #faf2ea;
+      --clay-border: #e2c09c;
+
+      /* Semantic Grades */
+      --grade-a: #1e5a2e;
+      --grade-a-bg: #eaf5ed;
+      --grade-b: #8a571f;
+      --grade-b-bg: #fbf2e6;
+      --grade-c: #9e3d0e;
+      --grade-c-bg: #faede6;
+      --grade-reject: #9e2323;
+      --grade-reject-bg: #faeaea;
+
+      /* Fonts */
+      --font-display: 'Bricolage Grotesque', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+      /* Radius & Shadows */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --shadow-sm: 0 1px 3px rgba(28, 25, 21, 0.05);
+      --shadow-md: 0 4px 14px rgba(28, 25, 21, 0.07);
+      --shadow-lg: 0 14px 36px -8px rgba(28, 25, 21, 0.1);
+    }
+
+    /* Reset & Base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--canvas);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .font-display { font-family: var(--font-display); }
+    .font-mono { font-family: var(--font-mono); }
+
+    .app-container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 24px 20px 80px 20px;
+    }
+
+    /* -------------------------------------------------------------
+       HEADER & HERO
+       ------------------------------------------------------------- */
+    header.hero-banner {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      padding: 28px 32px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    header.hero-banner::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--brand) 0%, var(--brand-border) 40%, var(--clay) 80%, var(--clay-border) 100%);
+    }
+
+    .hero-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .meta-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .badge-brand {
+      background: var(--brand-tint);
+      color: var(--brand);
+      border: 1px solid var(--brand-border);
+    }
+
+    .badge-clay {
+      background: var(--clay-tint);
+      color: var(--clay);
+      border: 1px solid var(--clay-border);
+    }
+
+    .badge-neutral {
+      background: var(--canvas);
+      color: var(--ink-muted);
+      border: 1px solid var(--line);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      background: var(--brand);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-action:hover {
+      background: var(--brand-deep);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line-strong);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover {
+      background: var(--canvas-subtle);
+      border-color: var(--ink-muted);
+    }
+
+    .btn-secondary.active {
+      background: var(--brand-tint);
+      border-color: var(--brand);
+      color: var(--brand);
+    }
+
+    .hero-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .hero-subtitle {
+      font-size: 13.5px;
+      color: var(--ink-muted);
+      max-width: 960px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    /* Hero Stats Grid */
+    .hero-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .stat-pill {
+      background: var(--surface-raised);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .stat-val {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--ink-subtle);
+    }
+
+    /* -------------------------------------------------------------
+       INTERACTIVE TOOLBAR & PRESET BAR
+       ------------------------------------------------------------- */
+    .toolbar-container {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .preset-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preset-chip {
+      background: var(--canvas);
+      border: 1.5px solid var(--line);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--ink-muted);
+      color: var(--ink);
+    }
+
+    .preset-chip.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(30, 90, 46, 0.25);
+    }
+
+    .filter-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .filter-btn {
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      color: var(--ink-muted);
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .filter-btn:hover {
+      background: var(--surface);
+      color: var(--ink);
+    }
+
+    .filter-btn.active {
+      background: var(--brand-tint);
+      border-color: var(--brand);
+      color: var(--brand);
+      font-weight: 700;
+    }
+
+    /* Rehearsal Stopwatch Widget */
+    .stopwatch-widget {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      padding: 4px 10px;
+      border-radius: var(--radius-md);
+    }
+
+    .stopwatch-time {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--brand-deep);
+      min-width: 48px;
+    }
+
+    .btn-timer {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--ink);
+    }
+
+    .btn-timer:hover {
+      background: var(--canvas-subtle);
+    }
+
+    /* Production Progress Bar */
+    .production-progress-card {
+      background: var(--surface-raised);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .progress-bar-outer {
+      flex: 1;
+      min-width: 200px;
+      height: 8px;
+      background: var(--sunken);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand) 0%, var(--brand-border) 100%);
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* -------------------------------------------------------------
+       SCENE CARDS & ACT SECTIONS
+       ------------------------------------------------------------- */
+    .act-wrapper {
+      margin-bottom: 36px;
+    }
+
+    .act-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--line-strong);
+      padding-bottom: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .act-title-block {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .act-number {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--brand);
+      background: var(--brand-tint);
+      border: 1px solid var(--brand-border);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .act-title {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .act-timing {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-subtle);
+    }
+
+    .scene-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
+      gap: 20px;
+    }
+
+    .scene-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      position: relative;
+    }
+
+    .scene-card:hover {
+      border-color: var(--line-strong);
+      box-shadow: var(--shadow-md);
+    }
+
+    .scene-card.completed {
+      border-color: var(--brand-border);
+      background: #fcfdfc;
+    }
+
+    .scene-card.completed .scene-card-header {
+      background: #f1f8f3;
+    }
+
+    .scene-card-header {
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .scene-id-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scene-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--ink);
+      color: #ffffff;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .badge-core-star {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .scene-name {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .scene-time-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      background: var(--canvas);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    /* Wireframe Preview Box */
+    .scene-preview-box {
+      background: var(--canvas);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+    }
+
+    .preview-canvas {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .preview-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--line);
+      font-size: 11px;
+    }
+
+    .preview-url-chip {
+      background: var(--canvas);
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: var(--ink-muted);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .preview-shot-chip {
+      color: var(--ink-subtle);
+      font-weight: 600;
+      font-size: 10.5px;
+    }
+
+    /* Card Body */
+    .scene-body {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .content-block {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .content-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .content-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ink-subtle);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-copy-vo {
+      background: transparent;
+      border: 1px solid var(--line);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--ink-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s ease;
+    }
+
+    .btn-copy-vo:hover {
+      background: var(--canvas-subtle);
+      color: var(--ink);
+    }
+
+    .voiceover-quote {
+      background: #fbf9f4;
+      border-left: 3px solid var(--clay);
+      padding: 10px 12px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    .voiceover-quote strong {
+      color: var(--ink);
+    }
+
+    .action-guide {
+      background: var(--surface-raised);
+      border: 1px solid var(--line);
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+    }
+
+    .action-guide strong {
+      color: var(--ink);
+    }
+
+    .scene-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+
+    .meta-tags-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .lower-thirds-tag {
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .meta-tag {
+      background: var(--canvas);
+      color: var(--ink-muted);
+      border: 1px solid var(--line);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .check-completed-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-subtle);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check-completed-label input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: var(--brand);
+      width: 15px;
+      height: 15px;
+    }
+
+    /* -------------------------------------------------------------
+       CALL SHEET TABLE VIEW
+       ------------------------------------------------------------- */
+    .callsheet-table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+      margin-bottom: 32px;
+    }
+
+    table.callsheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    table.callsheet-table th {
+      background: var(--surface-raised);
+      color: var(--ink-subtle);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-size: 11px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    table.callsheet-table td {
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    table.callsheet-table tr:hover td {
+      background: var(--canvas);
+    }
+
+    table.callsheet-table tr.completed td {
+      background: #f4faf6;
+    }
+
+    /* -------------------------------------------------------------
+       GUIDELINE ACCORDION & TIPS
+       ------------------------------------------------------------- */
+    .guideline-section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 28px;
+    }
+
+    .guideline-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .guideline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .guideline-card {
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+    }
+
+    .guideline-card h4 {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guideline-card ul {
+      list-style: none;
+      padding: 0;
+      font-size: 12px;
+      color: var(--ink-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .guideline-card ul li {
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .guideline-card ul li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--brand);
+      font-weight: bold;
+    }
+
+    /* Toast Notification */
+    .toast-notice {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--ink);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      transform: translateY(10px);
+      z-index: 1000;
+    }
+
+    .toast-notice.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* -------------------------------------------------------------
+       BAGIAN PENUTUP & PENGESAHAN TIM
+       ------------------------------------------------------------- */
+    .penutup-section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: var(--shadow-sm);
+      margin-top: 10px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .penutup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .penutup-header-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .penutup-header-sub {
+      font-size: 13px;
+      color: var(--ink-muted);
+      margin-top: 4px;
+    }
+
+    .penutup-hero-quote {
+      background: linear-gradient(135deg, var(--brand-tint) 0%, #f7fbf8 100%);
+      border: 1px solid var(--brand-border);
+      border-left: 5px solid var(--brand);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+
+    .penutup-hero-quote blockquote {
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--brand-deep);
+      line-height: 1.55;
+      margin-bottom: 8px;
+    }
+
+    .penutup-hero-quote cite {
+      display: block;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--ink-muted);
+      font-style: normal;
+    }
+
+    .penutup-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .penutup-card {
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+    }
+
+    .penutup-card h4 {
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .penutup-card p, .penutup-card ul {
+      font-size: 12px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+    }
+
+    .penutup-card ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .penutup-card ul li {
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .penutup-card ul li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--brand);
+      font-weight: bold;
+    }
+
+    /* Submisi Checklist */
+    .checklist-container {
+      background: var(--surface-raised);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      margin-bottom: 26px;
+    }
+
+    .checklist-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .checklist-items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 10px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--ink);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    .check-item:hover {
+      border-color: var(--brand);
+      background: var(--brand-tint);
+    }
+
+    .check-item input[type="checkbox"] {
+      margin-top: 2px;
+      accent-color: var(--brand);
+      cursor: pointer;
+    }
+
+    /* Signatures Section */
+    .signatures-section {
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 20px 22px;
+    }
+
+    .signatures-title {
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .signatures-statement {
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .signatures-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .signature-box {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 135px;
+    }
+
+    .signature-role {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ink-subtle);
+    }
+
+    .signature-space {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--line-strong);
+      border-bottom: 1px dashed var(--line-strong);
+      margin: 6px 12px;
+    }
+
+    .signature-name {
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .signature-id {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-subtle);
+      margin-top: 2px;
+    }
+
+    /* -------------------------------------------------------------
+       PRINT-SPECIFIC STYLES (@media print)
+       ------------------------------------------------------------- */
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 12mm 10mm 12mm 10mm;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: #111111 !important;
+        font-size: 10pt;
+      }
+
+      .app-container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .no-print,
+      .controls-toolbar,
+      .toolbar-container,
+      .toast-notice,
+      .btn-copy-vo,
+      .check-completed-label input {
+        display: none !important;
+      }
+
+      header.hero-banner {
+        border: 1px solid #777;
+        box-shadow: none !important;
+        padding: 14px 18px;
+        margin-bottom: 16px;
+        page-break-after: avoid;
+        border-radius: 4px;
+      }
+
+      header.hero-banner::after {
+        display: none;
+      }
+
+      .hero-title {
+        font-size: 18pt;
+        color: #000000 !important;
+      }
+
+      .hero-subtitle {
+        font-size: 9pt;
+        margin-bottom: 10px;
+      }
+
+      .hero-stats-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px;
+        padding-top: 8px;
+      }
+
+      .stat-pill {
+        background: #fbfbfb !important;
+        border: 1px solid #ccc !important;
+        padding: 6px 8px;
+      }
+
+      .act-wrapper {
+        margin-bottom: 18px;
+        page-break-inside: auto;
+      }
+
+      .act-header {
+        border-bottom: 2px solid #333;
+        margin-bottom: 10px;
+        page-break-after: avoid;
+      }
+
+      .act-title {
+        font-size: 13pt;
+        color: #000 !important;
+      }
+
+      .scene-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+      }
+
+      .scene-card {
+        border: 1px solid #555 !important;
+        box-shadow: none !important;
+        border-radius: 4px;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 12px;
+      }
+
+      .scene-card-header {
+        background: #f2f2f2 !important;
+        border-bottom: 1px solid #777;
+        padding: 6px 10px;
+      }
+
+      .scene-preview-box {
+        background: #f9f9f9 !important;
+        padding: 8px 10px;
+      }
+
+      .preview-canvas {
+        background: #ffffff !important;
+        border: 1px solid #aaa !important;
+        padding: 6px 8px;
+      }
+
+      .scene-body {
+        padding: 8px 10px;
+        gap: 6px;
+      }
+
+      .voiceover-quote {
+        background: #fcfaf6 !important;
+        border-left: 3px solid #666 !important;
+        color: #111 !important;
+        padding: 6px 8px;
+        font-size: 9pt;
+        line-height: 1.45;
+      }
+
+      .action-guide {
+        background: #fafafa !important;
+        border: 1px solid #ccc !important;
+        color: #222 !important;
+        padding: 6px 8px;
+        font-size: 8.5pt;
+      }
+
+      .guideline-section {
+        border: 1px solid #888;
+        box-shadow: none;
+        page-break-inside: avoid;
+      }
+
+      .callsheet-table-wrapper {
+        border: 1px solid #666;
+        box-shadow: none;
+        page-break-inside: auto;
+      }
+
+      table.callsheet-table th {
+        background: #e8e8e8 !important;
+        color: #000 !important;
+        padding: 6px 8px;
+      }
+
+      table.callsheet-table td {
+        padding: 6px 8px;
+        font-size: 8.5pt;
+      }
+
+      .penutup-section {
+        border: 1px solid #777 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        padding: 16px 20px !important;
+        margin-top: 20px !important;
+        border-radius: 4px !important;
+      }
+
+      .penutup-hero-quote {
+        background: #f7f7f7 !important;
+        border: 1px solid #888 !important;
+        border-left: 4px solid #333 !important;
+        padding: 10px 14px !important;
+      }
+
+      .signature-box {
+        border: 1px solid #777 !important;
+      }
+
+      .signature-space {
+        border-bottom: 1px solid #444 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- =========================================================
+       HERO BANNER & DOCUMENT METADATA
+       ========================================================= -->
+  <header class="hero-banner">
+    <div class="hero-top-row">
+      <div class="meta-badges">
+        <span class="badge badge-brand">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          HoloDev HOLOGY 9.0 FILKOM UB
+        </span>
+        <span class="badge badge-clay">Ketahanan Pangan & Pertanian Cerdas</span>
+        <span class="badge badge-neutral">Maks. 10 Menit</span>
+        <span class="badge badge-neutral font-mono">ID: HoloDev_HOLOGY9.0_Inilah 4 trio_PANTAS</span>
+      </div>
+
+      <div class="hero-actions no-print" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn-action" onclick="document.getElementById('penutup-resmi').scrollIntoView({behavior: 'smooth'})" style="background: var(--brand-tint); color: var(--brand-deep); border: 1px solid var(--brand-border);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+          Ke Bagian Penutup
+        </button>
+        <button class="btn-action" onclick="printActiveView()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Cetak Storyboard (PDF)
+        </button>
+      </div>
+    </div>
+
+    <h1 class="hero-title font-display">
+      Storyboard Alur Video Demo Produk: PANTAS
+    </h1>
+    <p class="hero-subtitle">
+      Panduan produksi rekaman video demo (*functional prototype walkthrough*) untuk kompetisi <strong>HoloDev HOLOGY 9.0 Universitas Brawijaya</strong>. Memperlihatkan alur holistik PANTAS: penilaian grading AI objektif berkalibrasi koin Rp500, rekomendasi harga adil berbasis PIHPS, katalog hortikultura terintegrasi, penjemputan logistik multi-petani, serta sertifikat ketertelusuran publik SHA-256.
+    </p>
+
+    <!-- Stats & Meta Pill Grid -->
+    <div class="hero-stats-grid">
+      <div class="stat-pill">
+        <div class="stat-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Target Durasi Mode Aktif
+        </div>
+        <div class="stat-val font-mono" id="stat-duration">03:45 <span class="stat-sub">(225 detik)</span></div>
+        <div class="stat-sub">Batas panduan resmi: maks. 10:00</div>
+      </div>
+
+      <div class="stat-pill">
+        <div class="stat-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+          Cakupan Adegan
+        </div>
+        <div class="stat-val font-mono" id="stat-scenes">7 Adegan Inti</div>
+        <div class="stat-sub">Termasuk Bumper Penutup Resmi</div>
+      </div>
+
+      <div class="stat-pill">
+        <div class="stat-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Tim Pengembang (UGM)
+        </div>
+        <div class="stat-val">Inilah 4 trio</div>
+        <div class="stat-sub">M. Raihan Surya &bull; M. Choirudin &bull; Ahmad Rafi</div>
+      </div>
+
+      <div class="stat-pill">
+        <div class="stat-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Kesiapan Demo Kit
+        </div>
+        <div class="stat-val font-mono" style="color: var(--brand);">100% Functional</div>
+        <div class="stat-sub">3 Akun Demo 1-Tap &bull; Reset tiap 6 jam</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       TOOLBAR & PRODUCTION CONTROL PANEL (Screen Only)
+       ========================================================= -->
+  <div class="toolbar-container no-print">
+    <!-- Baris 1: Mode Alur (Ringkas vs Lengkap) & View Switcher -->
+    <div class="toolbar-row">
+      <div class="preset-selector-group">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ink-subtle); text-transform: uppercase;">Pilihan Alur Demo:</span>
+        <button class="preset-chip active" id="btn-flow-compact" onclick="setFlowMode('compact')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          Alur Ringkas (3.5 Menit &bull; 7 Adegan) — Rekomendasi
+        </button>
+        <button class="preset-chip" id="btn-flow-extended" onclick="setFlowMode('extended')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Alur Lengkap (7.5 Menit &bull; 14 Adegan)
+        </button>
+      </div>
+
+      <!-- View Switcher -->
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn-secondary active" id="btn-view-cards" onclick="setViewMode('cards')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Mode Kartu
+        </button>
+        <button class="btn-secondary" id="btn-view-table" onclick="setViewMode('table')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          Call Sheet Tabel
+        </button>
+      </div>
+    </div>
+
+    <!-- Baris 2: Filter Babak, Stopwatch Latihan, dan Checklist Progres -->
+    <div class="toolbar-row" style="padding-top: 8px; border-top: 1px solid var(--sunken);">
+      <div class="filter-btn-group">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ink-subtle); text-transform: uppercase; margin-right: 4px;">Babak:</span>
+        <button class="filter-btn active" onclick="filterAct('all', this)">Semua</button>
+        <button class="filter-btn" onclick="filterAct('act-1', this)">Act 1: Masalah</button>
+        <button class="filter-btn" onclick="filterAct('act-2', this)">Act 2: Pindai AI</button>
+        <button class="filter-btn" onclick="filterAct('act-3', this)">Act 3: Harga & Jual</button>
+        <button class="filter-btn" onclick="filterAct('act-4', this)">Act 4: Beli & Lacak</button>
+        <button class="filter-btn" onclick="filterAct('act-5', this)">Act 5: Rute Logistik</button>
+        <button class="filter-btn" onclick="filterAct('act-6', this)">Act 6: Dampak</button>
+      </div>
+
+      <!-- Stopwatch & Progress Summary -->
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <!-- Stopwatch Widget -->
+        <div class="stopwatch-widget" title="Gunakan untuk gladi resik tempo bicara presenter">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span class="stopwatch-time" id="sw-display">00:00</span>
+          <button class="btn-timer" id="sw-btn" onclick="toggleStopwatch()">Mulai</button>
+          <button class="btn-timer" onclick="resetStopwatch()">Reset</button>
+        </div>
+
+        <button class="btn-secondary" onclick="resetAllChecklist()" style="font-size: 11px; padding: 4px 8px;">
+          Reset Checklist
+        </button>
+      </div>
+    </div>
+
+    <!-- Baris 3: Progress Bar Status Rekaman -->
+    <div class="production-progress-card">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 12px; font-weight: 700; color: var(--ink);">Progres Rekaman Video:</span>
+        <span class="font-mono" id="progress-text" style="font-size: 12px; font-weight: 700; color: var(--brand);">0 / 6 adegan (0%)</span>
+      </div>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progress-bar"></div>
+      </div>
+      <span style="font-size: 11px; color: var(--ink-subtle);">Tersimpan otomatis di browser lokal</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PRODUCTION CALL SHEET (TABLE VIEW - Alternating Display)
+       ========================================================= -->
+  <section id="callsheet-view" class="callsheet-table-wrapper" style="display: none;">
+    <table class="callsheet-table">
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">Status</th>
+          <th style="width: 65px;">Scene</th>
+          <th style="width: 90px;">Timecode</th>
+          <th style="width: 150px;">Tipe Shot & URL</th>
+          <th>Fokus Visual & Gerakan Layar</th>
+          <th>Naskah Voiceover (Ringkasan)</th>
+          <th style="width: 120px;">Aset & Akun</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Scene 01 (Core) -->
+        <tr id="row-sc-01" data-tier="core" data-act="act-1">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-01', this.checked)">
+          </td>
+          <td class="font-mono font-bold">
+            SC-01 <span class="badge-core-star" title="Adegan Inti Alur Ringkas">★</span>
+          </td>
+          <td class="font-mono" style="color: var(--brand); font-weight: 600;">00:00–00:20 (20s)</td>
+          <td>Title Card + Webcast<br><code class="font-mono" style="font-size: 10px;">/ (Hero)</code></td>
+          <td>Judul resmi HoloDev, logo UGM, nama 3 anggota tim, tagline "Setiap Panen Pantas Dihargai".</td>
+          <td>"Halo dewan juri HoloDev HOLOGY 9.0 UB, kami dari tim Inilah 4 trio UGM mempersembahkan PANTAS..."</td>
+          <td>Bumper Intro + PiP Kamera</td>
+        </tr>
+
+        <!-- Scene 02 (Core) -->
+        <tr id="row-sc-02" data-tier="core" data-act="act-1">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-02', this.checked)">
+          </td>
+          <td class="font-mono font-bold">
+            SC-02 <span class="badge-core-star" title="Adegan Inti Alur Ringkas">★</span>
+          </td>
+          <td class="font-mono" style="color: var(--brand); font-weight: 600;">00:20–00:50 (30s)</td>
+          <td>Grafis Masalah + Split<br><code class="font-mono" style="font-size: 10px;">docs/PRD.md</code></td>
+          <td>Visual 5 pilar masalah: 62.8% food loss sayuran, sortir mata telanjang, asimetri harga, grade rendah dibuang.</td>
+          <td>"Kajian Bappenas mencatat 62,8% sayuran hilang akibat sortir subjektif mata telanjang senilai Rp205 T..."</td>
+          <td>Infografis Bappenas & WRI</td>
+        </tr>
+
+        <!-- Scene 03 (Core) -->
+        <tr id="row-sc-03" data-tier="core" data-act="act-2">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-03', this.checked)">
+          </td>
+          <td class="font-mono font-bold">
+            SC-03 <span class="badge-core-star" title="Adegan Inti Alur Ringkas">★</span>
+          </td>
+          <td class="font-mono" style="color: var(--brand); font-weight: 600;">00:50–01:25 (35s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/demo &rarr; /petani/pindai</code></td>
+          <td>1-Tap Login petani Pak Warsono. Masuk antarmuka pindai kamera + overlay koin Rp500 (27mm) + cek blur otomatis.</td>
+          <td>"Kita mulai dari sisi petani. Di halaman demo, masuk 1 ketukan tanpa login rumit. Unggah foto panen..."</td>
+          <td>Akun: <code>petani@demo.pantas.id</code></td>
+        </tr>
+
+        <!-- Scene 04 (Extended) -->
+        <tr id="row-sc-04" data-tier="extended" data-act="act-2">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-04', this.checked)">
+          </td>
+          <td class="font-mono font-bold">SC-04</td>
+          <td class="font-mono" style="color: var(--ink-subtle); font-weight: 600;">01:25–01:55 (30s)</td>
+          <td>Diagram Animasi + Code<br><code class="font-mono" style="font-size: 10px;">ai_engine/</code></td>
+          <td>Alur 3 langkah AI: YOLO-1 instance segmentation latar putih, OpenCV geometry rule engine, YOLO-2 veto patologi.</td>
+          <td>"PANTAS menggunakan dual-stage YOLOv11: tahap segmentasi memotong latar, rule engine menghitung geometri..."</td>
+          <td>Diagram Arsitektur AI</td>
+        </tr>
+
+        <!-- Scene 05 (Core) -->
+        <tr id="row-sc-05" data-tier="core" data-act="act-2">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-05', this.checked)">
+          </td>
+          <td class="font-mono font-bold">
+            SC-05 <span class="badge-core-star" title="Adegan Inti Alur Ringkas">★</span>
+          </td>
+          <td class="font-mono" style="color: var(--brand); font-weight: 600;">01:25–02:05 (40s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/petani/hasil</code></td>
+          <td>Foto beranotasi bounding box warna grade, komposisi Grade A/B/C/REJECT, metrik mm², solidity, dan Hash SHA-256.</td>
+          <td>"Dalam hitungan detik, keluar laporan grading objektif lengkap: mm², circularity, dan hash SHA-256..."</td>
+          <td>Sampel Panen Tomat / Cabai</td>
+        </tr>
+
+        <!-- Scene 06 (Core) -->
+        <tr id="row-sc-06" data-tier="core" data-act="act-3">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-06', this.checked)">
+          </td>
+          <td class="font-mono font-bold">
+            SC-06 <span class="badge-core-star" title="Adegan Inti Alur Ringkas">★</span>
+          </td>
+          <td class="font-mono" style="color: var(--brand); font-weight: 600;">02:05–02:45 (40s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/petani/harga</code></td>
+          <td>Kalkulasi harga PIHPS x pengali mutu. Rumus terbuka suku per suku. Simulasi alihkan Grade B/C ke industri saus.</td>
+          <td>"Dari mutu, sistem menurunkan rekomendasi harga adil. Rumus pengalinya dibuka transparan tanpa angka ajaib..."</td>
+          <td>Feed Harga Pasar PIHPS</td>
+        </tr>
+
+        <!-- Scene 07 (Extended) -->
+        <tr id="row-sc-07" data-tier="extended" data-act="act-3">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-07', this.checked)">
+          </td>
+          <td class="font-mono font-bold">SC-07</td>
+          <td class="font-mono" style="color: var(--ink-subtle); font-weight: 600;">02:45–03:15 (30s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/petani/listing</code></td>
+          <td>Input berat panen, tetapkan harga wajar, terbitkan listing ke marketplace dengan sertifikat mutu audit otomatis.</td>
+          <td>"Petani langsung menerbitkan listing. Laporan hasil grading dan hash audit otomatis tersemat tanpa input manual..."</td>
+          <td>Form Listing Panen</td>
+        </tr>
+
+        <!-- Scene 08 (Core) -->
+        <tr id="row-sc-08" data-tier="core" data-act="act-4">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-08', this.checked)">
+          </td>
+          <td class="font-mono font-bold">
+            SC-08 <span class="badge-core-star" title="Adegan Inti Alur Ringkas">★</span>
+          </td>
+          <td class="font-mono" style="color: var(--brand); font-weight: 600;">02:45–03:20 (35s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/pembeli &amp; /lacak/[hash]</code></td>
+          <td>1-Tap Pembeli Rina Pradita. Filter jarak Haversine, drawer Bandingkan, buka sertifikat mutu publik tanpa login.</td>
+          <td>"Sekarang beralih ke pembeli industri makanan. Cari komoditas terdekat, bandingkan grade, dan audit via /lacak..."</td>
+          <td>Akun: <code>pembeli@demo.pantas.id</code></td>
+        </tr>
+
+        <!-- Scene 09 (Extended) -->
+        <tr id="row-sc-09" data-tier="extended" data-act="act-4">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-09', this.checked)">
+          </td>
+          <td class="font-mono font-bold">SC-09</td>
+          <td class="font-mono" style="color: var(--ink-subtle); font-weight: 600;">03:20–03:45 (25s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/lacak/[hash]</code></td>
+          <td>Buka tab Incognito sertifikat mutu publik resmi, verifikasi hash SHA-256 dan tombol cetak label peti (QR crate).</td>
+          <td>"Halaman pelacakan publik dapat dibuka siapa saja tanpa login, bebas data pribadi, dengan bukti audit SHA-256..."</td>
+          <td>Mode Incognito / QR Code</td>
+        </tr>
+
+        <!-- Scene 10 (Extended) -->
+        <tr id="row-sc-10" data-tier="extended" data-act="act-4">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-10', this.checked)">
+          </td>
+          <td class="font-mono font-bold">SC-10</td>
+          <td class="font-mono" style="color: var(--ink-subtle); font-weight: 600;">03:45–04:15 (30s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/pembeli/produk/[id]</code></td>
+          <td>Pembeli ajukan kuantitas 150 kg, buat penawaran, chat negosiasi, hingga pesanan resmi aktif dengan kode serah terima.</td>
+          <td>"Pembeli memesan 150 kg, menyepakati penawaran, dan pesanan aktif terbentuk lengkap dengan kode verifikasi..."</td>
+          <td>Form Pesanan Aktif</td>
+        </tr>
+
+        <!-- Scene 11 (Extended) -->
+        <tr id="row-sc-11" data-tier="extended" data-act="act-5">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-11', this.checked)">
+          </td>
+          <td class="font-mono font-bold">SC-11</td>
+          <td class="font-mono" style="color: var(--ink-subtle); font-weight: 600;">04:15–04:55 (40s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/admin/rute</code></td>
+          <td>Admin Koperasi: Perencana rute konsolidasi Nearest-Neighbour multi-petani, hemat 42% BBM, checklist suhu dingin.</td>
+          <td>"Koperasi mengelompokkan rute penjemputan multi-petani dengan algoritma Nearest-Neighbour, hemat BBM 42%..."</td>
+          <td>Akun: <code>admin@demo.pantas.id</code></td>
+        </tr>
+
+        <!-- Scene 12 (Core) -->
+        <tr id="row-sc-12" data-tier="core" data-act="act-5">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-12', this.checked)">
+          </td>
+          <td class="font-mono font-bold">
+            SC-12 <span class="badge-core-star" title="Adegan Inti Alur Ringkas">★</span>
+          </td>
+          <td class="font-mono" style="color: var(--brand); font-weight: 600;">03:20–03:45 (25s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/petani/pesanan/[id]</code></td>
+          <td>Handshake serah terima barang di gudang. Validasi kode pencocokan di server Supabase RPC, transaksi tuntas.</td>
+          <td>"Ketika armada tiba, serah terima diselesaikan dengan memasukkan kode pencocokan aman di level server RPC..."</td>
+          <td>Token Handshake RPC</td>
+        </tr>
+
+        <!-- Scene 13 (Extended) -->
+        <tr id="row-sc-13" data-tier="extended" data-act="act-6">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-13', this.checked)">
+          </td>
+          <td class="font-mono font-bold">SC-13</td>
+          <td class="font-mono" style="color: var(--ink-subtle); font-weight: 600;">04:55–05:20 (25s)</td>
+          <td>Screencast Browser<br><code class="font-mono" style="font-size: 10px;">/petani/dampak &amp; /admin</code></td>
+          <td>Dashboard dampak kg pangan terselamatkan & emisi CO2e (faktor Poore & Nemecek Science 2018) + AI telemetry latensi.</td>
+          <td>"Setiap transaksi tercatat di dashboard dampak: kg pangan terselamatkan dan reduksi CO2e terhitung otomatis..."</td>
+          <td>Kalkulator Emisi Science 2018</td>
+        </tr>
+
+        <!-- Scene 14 (Core / Closing) -->
+        <tr id="row-sc-14" data-tier="core" data-act="act-6">
+          <td style="text-align: center;">
+            <input type="checkbox" onchange="syncCheck('sc-14', this.checked)">
+          </td>
+          <td class="font-mono font-bold">
+            SC-14 <span class="badge-core-star" title="Adegan Inti Alur Ringkas &amp; Lengkap">★</span>
+          </td>
+          <td class="font-mono" style="color: var(--brand); font-weight: 600;">03:25–03:45 (20s)</td>
+          <td>Closing Graphic Card<br><code class="font-mono" style="font-size: 10px;">/tentang &amp; GitHub</code></td>
+          <td>Penutup resmi, closing statement ("Selisih satu tingkat grade..."), tautan live demo, identitas tim UGM, dan apresiasi dewan juri HoloDev HOLOGY 9.0 UB.</td>
+          <td>"PANTAS: Setiap Panen Pantas Dihargai. Mengubah ketidakpastian mutu menjadi keadilan nyata bagi petani Indonesia..."</td>
+          <td>Kartu Penutup Tim UGM</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- =========================================================
+       STORYBOARD CARDS VIEW (Full Visual Layout)
+       ========================================================= -->
+  <main id="cards-view">
+
+    <!-- ==========================================
+         ACT 1: MASALAH & IDENTITAS TIM
+         ========================================== -->
+    <div class="act-wrapper" data-act="act-1">
+      <div class="act-header">
+        <div class="act-title-block">
+          <span class="act-number">ACT 1</span>
+          <h2 class="act-title font-display">Identitas Tim UGM & Urgensi Food Loss Hortikultura</h2>
+        </div>
+        <div class="act-timing">Durasi Babak: 50 detik</div>
+      </div>
+
+      <div class="scene-grid">
+
+        <!-- Scene 01 -->
+        <article class="scene-card" id="card-sc-01" data-tier="core" data-act="act-1">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-01</span>
+              <span class="badge-core-star">★ Inti Ringkas</span>
+              <h3 class="scene-name">Opening Title & Identitas Tim UGM</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              00:00 – 00:20 (20s)
+            </div>
+          </div>
+
+          <!-- Wireframe Preview Box -->
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                  https://pantas-ai.vercel.app
+                </span>
+                <span class="preview-shot-chip">Shot: Split Screen / PiP Kamera</span>
+              </div>
+              <!-- Mini Wireframe Drawing -->
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="flex: 1.2; border-right: 1px dashed var(--line); padding-right: 10px;">
+                  <div style="font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--brand);">PANTAS</div>
+                  <div style="font-size: 10.5px; color: var(--ink-muted);">Setiap Panen Pantas Dihargai</div>
+                  <div style="display: inline-block; margin-top: 6px; padding: 2px 6px; background: var(--canvas-subtle); border: 1px solid var(--line); border-radius: 3px; font-size: 9px; font-weight: 600;">HoloDev HOLOGY 9.0 FILKOM UB</div>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                  <div style="font-size: 9.5px; font-weight: 700; color: var(--ink-subtle);">TIM: Inilah 4 trio (UGM)</div>
+                  <div style="font-size: 8.5px; color: var(--ink-muted); line-height: 1.3;">
+                    • M. Choirudin Ammar (Team Lead & AI Engineer)<br>
+                    • M. Raihan Surya (Fullstack Developer)<br>
+                    • Ahmad Rafi Firdaus (Product Concept)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                  Naskah Voiceover (Dubbing)
+                </span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Nada percaya diri, tempo mantap] Halo dewan juri <strong>HoloDev HOLOGY 9.0 Universitas Brawijaya</strong>. Kami dari tim <strong>Inilah 4 trio</strong> perwakilan <strong>Universitas Gadjah Mada</strong> mempersembahkan <strong>PANTAS: Setiap Panen Pantas Dihargai</strong> — platform sistem sortasi mutu cerdas berbasis Computer Vision terkalibrasi metrik koin nyata dan marketplace hortikultura terintegrasi."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Tampilkan bumper opening resmi. Di sudut kanan bawah muncul <strong>Picture-in-Picture (PiP)</strong> 3 anggota tim mengenakan jas almamater UGM. Transisi halus (*cross-dissolve*) ke antarmuka landing page PANTAS di peramban.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">Lower-Third: Identitas Tim &amp; UGM</span>
+                <span class="meta-tag">Audio: BGM Akustik Halus</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-01', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- Scene 02 -->
+        <article class="scene-card" id="card-sc-02" data-tier="core" data-act="act-1">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-02</span>
+              <span class="badge-core-star">★ Inti Ringkas</span>
+              <h3 class="scene-name">Anatomi Masalah: Food Loss Sayuran 62.8%</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              00:20 – 00:50 (30s)
+            </div>
+          </div>
+
+          <!-- Wireframe Preview Box -->
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">Infografis: Kajian Bappenas & WRI (2021)</span>
+                <span class="preview-shot-chip">Shot: Graphic Overlay</span>
+              </div>
+              <!-- Mini Wireframe Drawing -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 10px;">
+                <div style="background: var(--grade-reject-bg); border: 1px solid #f0b8b8; border-radius: 4px; padding: 6px;">
+                  <div style="font-weight: 800; font-size: 13px; color: var(--grade-reject);">62,8% Sayuran Hilang</div>
+                  <div style="color: #6a1a1a; font-size: 8.5px;">Kerugian Rp106–205 Triliun/th akibat taksiran sepihak mata telanjang.</div>
+                </div>
+                <div style="background: var(--brand-tint); border: 1px solid var(--brand-border); border-radius: 4px; padding: 6px;">
+                  <div style="font-weight: 800; font-size: 13px; color: var(--brand);">Solusi PANTAS</div>
+                  <div style="color: var(--brand-deep); font-size: 8.5px;">Ubah taksiran subjektif jadi pengukuran objektif + audit publik SHA-256.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Nada solutif, transisi cepat] Berdasarkan kajian Bappenas dan WRI, <strong>62,8% sayuran di Indonesia hilang sebelum mencapai konsumen</strong>, menyumbang kerugian hingga 205 triliun rupiah per tahun. Akar masalahnya jelas: <strong>mutu panen dinilai sekilas dengan mata telanjang</strong> oleh tengkulak, harga ditentukan sepihak, dan sayuran grade rendah dibuang begitu saja. PANTAS hadir mengubah taksiran ini menjadi <strong>pengukuran berbasis AI yang adil, transparan, dan terverifikasi</strong>."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Tampilkan infografis 5 persoalan: sortir mata telanjang, asimetri harga, grade rendah dibuang, logistik terfragmentasi, dan ketiadaan verifikasi mutu. Arahkan kursor menekan tombol <strong>"Coba Demo Juri"</strong> di navigasi web.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">Rujukan: Kajian Bappenas &times; WRI (2021)</span>
+                <span class="meta-tag">Cut ke: Screencast Browser</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-02', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- ==========================================
+         ACT 2: PINDAI & GRADING CERDAS AI
+         ========================================== -->
+    <div class="act-wrapper" data-act="act-2">
+      <div class="act-header">
+        <div class="act-title-block">
+          <span class="act-number">ACT 2</span>
+          <h2 class="act-title font-display">Alur Petani: Pindai Kamera & Kalibrasi Koin Rp500</h2>
+        </div>
+        <div class="act-timing">Durasi Babak: 75 detik</div>
+      </div>
+
+      <div class="scene-grid">
+
+        <!-- Scene 03 -->
+        <article class="scene-card" id="card-sc-03" data-tier="core" data-act="act-2">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-03</span>
+              <span class="badge-core-star">★ Inti Ringkas</span>
+              <h3 class="scene-name">1-Tap Demo Login & Pindai Berkalibrasi Koin Rp500</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              00:50 – 01:25 (35s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/demo &rarr; /petani/pindai</span>
+                <span class="preview-shot-chip">Screencast Desktop/Mobile</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="border: 1px dashed var(--line); border-radius: 4px; padding: 10px; background: #faf9f6; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <div style="font-size: 11px; font-weight: 700;">Pak Warsono (Petani Tomat)</div>
+                  <div style="font-size: 9px; color: var(--ink-muted);">Pakem, Sleman &bull; 1-Tap Login Aktif</div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <div style="border: 2px dashed var(--brand); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: var(--brand);">Rp500</div>
+                  <div style="background: #e63946; border-radius: 6px; width: 32px; height: 24px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Antusias & teknikal] Di halaman demo, dewan juri dapat langsung masuk satu ketukan tanpa repot mengetik password. Kita masuk sebagai <strong>Pak Warsono</strong>, petani tomat di Sleman. Di menu Pindai Panen, petani meletakkan <strong>koin Rp500 berdiameter standar 27 mm</strong> di samping hasil panen. Koin ini berfungsi sebagai acuan kalibrasi ukuran nyata per milimeter persegi tanpa memerlukan alat ukur khusus."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Buka `/demo`, klik kartu <strong>"Masuk sebagai Petani"</strong>. Otomatis mendarat di dashboard. Tekan tombol <strong>"Pindai Panen Baru"</strong>. Pilih sampel bawaan <code>/img/contoh/tomato.jpg</code> atau <code>chili.jpg</code>. Tunjukkan indikator overlay deteksi koin dan validasi foto tidak buram (*blur check*).
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-03: 1-Tap Demo &amp; F-11: Kalibrasi Koin Rp500</span>
+                <span class="meta-tag">Akun: petani@demo.pantas.id</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-03', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- Scene 04 (Extended) -->
+        <article class="scene-card" id="card-sc-04" data-tier="extended" data-act="act-2">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-04</span>
+              <h3 class="scene-name">Deep-Dive Arsitektur Dual-Stage YOLOv11 & Rule Engine</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              01:25 – 01:55 (30s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">ai_engine/grading_engine.py</span>
+                <span class="preview-shot-chip">Shot: Diagram Pipeline + Code</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="display: flex; align-items: center; justify-content: space-around; font-size: 9.5px; padding: 4px 0;">
+                <div style="background: var(--canvas-subtle); padding: 5px 8px; border-radius: 4px; border: 1px solid var(--line); text-align: center;">
+                  <strong>YOLO-1</strong><br>Segmentasi
+                </div>
+                <span>&rarr;</span>
+                <div style="background: var(--brand-tint); padding: 5px 8px; border-radius: 4px; border: 1px solid var(--brand-border); text-align: center;">
+                  <strong>Rule Engine</strong><br>Geometri mm²
+                </div>
+                <span>&rarr;</span>
+                <div style="background: var(--clay-tint); padding: 5px 8px; border-radius: 4px; border: 1px solid var(--clay-border); text-align: center;">
+                  <strong>YOLO-2</strong><br>Veto Patologi
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Penjelasan arsitektur AI, tegas] Pipeline AI PANTAS tidak menggunakan black-box tunggal. Kami merancang <strong>dual-stage YOLOv11</strong>: tahap pertama memisahkan komoditas dari latar belakang, kemudian <strong>OpenCV Rule Engine</strong> mengukur panjang, rasio, circularity, dan solidity fisik. Tahap kedua mengklasifikasikan bercak penyakit atau kebusukan sebagai <strong>mekanisme veto mutlak</strong>."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Animasi diagram alur 3 langkah AI Engine. Tampilkan cuplikan singkat file konfigurasi JSON ambang batas grade per komoditas (`grading_rules.json`) untuk menegaskan transparansi ilmiah sistem.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">Dual-Stage YOLOv11 + Explainable Rule Engine</span>
+                <span class="meta-tag">FastAPI Backend</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-04', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- Scene 05 -->
+        <article class="scene-card" id="card-sc-05" data-tier="core" data-act="act-2">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-05</span>
+              <span class="badge-core-star">★ Inti Ringkas</span>
+              <h3 class="scene-name">Laporan Grading Terukur & Hash Audit SHA-256</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              01:25 – 02:05 (40s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/petani/hasil &bull; ID Batch: #BATCH-8821</span>
+                <span class="preview-shot-chip">Screencast Browser</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="flex: 1; border-right: 1px dashed var(--line); padding-right: 8px;">
+                  <div style="font-size: 10px; font-weight: 700; color: var(--brand);">Grade A (60%) &bull; Grade B (25%)</div>
+                  <div style="font-size: 8.5px; color: var(--ink-muted);">Grade C (15%) &bull; REJECT (0%)</div>
+                  <div style="margin-top: 4px; font-size: 8px; color: var(--ink-subtle);">Ukuran rata-rata: 1.840 mm² &bull; Circularity: 0.89</div>
+                </div>
+                <div style="flex: 1; font-size: 8.5px; color: var(--ink-muted);">
+                  <div style="font-weight: 700; color: var(--ink);">Hash Audit Kriptografis:</div>
+                  <div class="font-mono" style="background: var(--canvas-subtle); padding: 2px 4px; border-radius: 3px; font-size: 8px;">sha256:c28a59b...</div>
+                  <div style="color: var(--brand); font-weight: bold; margin-top: 2px;">Terverifikasi Tidak Berubah</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Lugas & impresif] Hanya dalam beberapa detik, hasil grading keluar secara lengkap. Bukan sekadar nilai huruf, melainkan <strong>penjelasan alasan per butir yang bisa dibaca manusia</strong>: luas milimeter persegi, rasio kebulatan, dan kepadatan fisik. Seluruh hasil dikunci dengan <strong>hash audit SHA-256</strong>, menjamin data mutu tidak dapat dimanipulasi oleh pihak mana pun."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Tampilkan hasil inferensi di `/petani/hasil`. Sorot kartu ringkasan mutu grade A/B/C/Reject, klik salah satu bounding box tomat untuk membuka modal detail ukuran geometri, lalu arahkan kursor ke badge hash SHA-256.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-13: Laporan Mutu Human-Readable &amp; F-60: Hash SHA-256</span>
+                <span class="meta-tag">Audit Mutu Panen</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-05', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- ==========================================
+         ACT 3: FORMULASI HARGA & AUTO-LISTING
+         ========================================== -->
+    <div class="act-wrapper" data-act="act-3">
+      <div class="act-header">
+        <div class="act-title-block">
+          <span class="act-number">ACT 3</span>
+          <h2 class="act-title font-display">Harga Adil Berbasis PIHPS & Auto-Listing Marketplace</h2>
+        </div>
+        <div class="act-timing">Durasi Babak: 70 detik</div>
+      </div>
+
+      <div class="scene-grid">
+
+        <!-- Scene 06 -->
+        <article class="scene-card" id="card-sc-06" data-tier="core" data-act="act-3">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-06</span>
+              <span class="badge-core-star">★ Inti Ringkas</span>
+              <h3 class="scene-name">Formulasi Harga Adil PIHPS & Penyelamatan Grade B/C</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              02:05 – 02:45 (40s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/petani/harga &bull; Rekomendasi Wajar</span>
+                <span class="preview-shot-chip">Screencast Browser</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                <div>
+                  <div style="font-weight: 700; color: var(--ink);">Harga Acuan PIHPS: Rp25.000/kg</div>
+                  <div style="color: var(--brand); font-weight: 600;">Pengali Mutu Batch: &times;1.18 (Grade A Dominan)</div>
+                  <div style="font-size: 9px; color: var(--ink-subtle);">Rentang Wajar: Rp28.000 – Rp31.000/kg</div>
+                </div>
+                <div style="text-align: right; background: var(--brand-tint); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--brand-border);">
+                  <div style="font-size: 8px; color: var(--brand-deep); font-weight: bold;">Rekomendasi PANTAS</div>
+                  <div style="font-size: 13px; font-weight: 800; color: var(--brand);">Rp29.500/kg</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Memberi solusi, meyakinkan] Dari komposisi mutu objektif, PANTAS menurunkan rekomendasi harga adil. <strong>Rumusnya dibuka transparan suku per suku</strong>: harga acuan PIHPS Bank Indonesia dikalikan pengali mutu batch. Petani kini punya dasar tawar-menawar yang kuat. Terpenting, <strong>Grade B dan C tidak dibuang</strong>, melainkan ditawarkan ke industri pengolahan saus dan keripik dengan harga tetap bernilai positif."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Dari halaman hasil, klik <strong>"Lihat Rekomendasi Harga"</strong> (`/petani/harga`). Tunjukkan breakdown formula harga suku per suku, gerakkan slider simulasi harga di luar rentang untuk memperlihatkan peringatan ramah tanpa memblokir kebebasan petani.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-20: Harga Acuan PIHPS &amp; F-22: Kanal Grade Rendah</span>
+                <span class="meta-tag">Harga Transparan</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-06', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- Scene 07 (Extended) -->
+        <article class="scene-card" id="card-sc-07" data-tier="extended" data-act="act-3">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-07</span>
+              <h3 class="scene-name">Penerbitan Auto-Listing ke Marketplace PANTAS</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              02:45 – 03:15 (30s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/petani/listing &rarr; Terbitkan</span>
+                <span class="preview-shot-chip">Screencast Browser</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="border: 1px solid var(--line); border-radius: 4px; padding: 8px; font-size: 9.5px; background: #ffffff;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                  <span style="font-weight: bold;">Listing Siap Terbit: Tomat Merah Sleman</span>
+                  <span class="badge badge-brand" style="font-size: 9px; padding: 1px 6px;">Sertifikat Mutu Tersemat</span>
+                </div>
+                <div style="color: var(--ink-muted); font-size: 8.5px;">Kuantitas: 250 kg &bull; Harga: Rp29.500/kg &bull; Grade A 60%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Mengalir, efisien] Begitu harga disepakati, petani langsung menerbitkan listing ke marketplace dalam satu kali klik. Data foto beranotasi, laporan grade, dan tautan sertifikat audit publik langsung tersemat otomatis pada listing tanpa perlu memasukkan data ulang secara manual."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Masukkan berat panen 250 kg pada form listing, tetapkan harga Rp29.500, lalu klik <strong>"Terbitkan Listing Sekarang"</strong>. Tampilkan notifikasi toast hijau bahwa produk telah langsung live di katalog pembeli.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-30: Auto-Listing dari Laporan Grading</span>
+                <span class="meta-tag">Marketplace Tani</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-07', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- ==========================================
+         ACT 4: PEMBELI & KETERTELUSURAN PUBLIK
+         ========================================== -->
+    <div class="act-wrapper" data-act="act-4">
+      <div class="act-header">
+        <div class="act-title-block">
+          <span class="act-number">ACT 4</span>
+          <h2 class="act-title font-display">Alur Pembeli Industri: Discovery, Audit Publik & Order</h2>
+        </div>
+        <div class="act-timing">Durasi Babak: 75 detik</div>
+      </div>
+
+      <div class="scene-grid">
+
+        <!-- Scene 08 -->
+        <article class="scene-card" id="card-sc-08" data-tier="core" data-act="act-4">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-08</span>
+              <span class="badge-core-star">★ Inti Ringkas</span>
+              <h3 class="scene-name">Sisi Pembeli: Discovery Haversine & Mode Bandingkan</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              02:45 – 03:20 (35s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/pembeli &bull; Katalog Pemasok DIY</span>
+                <span class="preview-shot-chip">Screencast Desktop</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 9.5px;">
+                <div style="border: 1px solid var(--line); border-radius: 4px; padding: 6px; background: #ffffff;">
+                  <div style="font-weight: 700;">Tomat Merah Pak Warsono</div>
+                  <div style="color: var(--brand); font-weight: bold;">Grade A (60%) &bull; 4,2 km</div>
+                  <div style="font-size: 8px; color: var(--ink-subtle);">Sleman &bull; Rp29.500/kg</div>
+                </div>
+                <div style="border: 1px solid var(--line); border-radius: 4px; padding: 6px; background: #ffffff;">
+                  <div style="font-weight: 700;">Tomat Merah Pak Budi</div>
+                  <div style="color: var(--clay); font-weight: bold;">Grade B (55%) &bull; 7,8 km</div>
+                  <div style="font-size: 8px; color: var(--ink-subtle);">Bantul &bull; Rp24.000/kg</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Pergantian persona, sigap] Sekarang kita beralih ke sisi pembeli industri makanan. Masuk sebagai <strong>Rina Pradita</strong> via 1-Tap Login. Pembeli disuguhkan katalog 5 pemasok di DIY dengan <strong>jarak terhitung rumus Haversine geolokasi</strong>. Pembeli juga dapat menggunakan fitur <strong>Mode Bandingkan</strong> untuk menyejajarkan komposisi grade dua petani sebelum memutuskan pembelian."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Logout dari petani, masuk dengan kartu <strong>"Masuk sebagai Pembeli"</strong>. Buka katalog `/pembeli`. Klik checkbox "Bandingkan" pada listing Pak Warsono dan Pak Budi, lalu buka drawer perbandingan berdampingan (*compare drawer*).
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-40: Geolokasi Haversine &amp; F-77: Compare Drawer</span>
+                <span class="meta-tag">Akun: pembeli@demo.pantas.id</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-08', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- Scene 09 (Extended) -->
+        <article class="scene-card" id="card-sc-09" data-tier="extended" data-act="act-4">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-09</span>
+              <h3 class="scene-name">Sertifikat Ketertelusuran Publik /lacak/[hash]</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              03:20 – 03:45 (25s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/lacak/c28a59b... (Tab Incognito)</span>
+                <span class="preview-shot-chip">Shot: Public Audit View</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="display: flex; gap: 10px; align-items: center; padding: 2px 0;">
+                <div style="border: 1px solid var(--line); border-radius: 4px; padding: 6px; background: #ffffff;">
+                  <div style="width: 32px; height: 32px; background: #222; border-radius: 2px;"></div>
+                </div>
+                <div style="flex: 1; font-size: 9.5px;">
+                  <div style="font-weight: 700; color: var(--brand);">SERTIFIKAT MUTU PUBLIK RESMI</div>
+                  <div style="font-size: 8px; color: var(--ink-muted);">Terbuka Tanpa Sesi Login &bull; Zero PII &bull; QR Label Peti Panen</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Transparan & meyakinkan] Inilah kekuatan transparansi PANTAS: <strong>halaman pelacakan publik /lacak/[hash]</strong> dapat diakses siapa pun tanpa login, cukup memindai kode QR peti panen. Pembeli memeriksa keaslian foto batch, riwayat suhu, dan hash SHA-256 tanpa membocorkan data pribadi petani (Zero PII)."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Dari halaman produk, klik tombol <strong>"Audit Publik"</strong> atau buka jendela *Incognito* menuju `/lacak/[hash]`. Tunjukkan halaman termuat utuh tanpa perlu autentikasi, serta tombol <strong>"Cetak Label Peti (Crate Label)"</strong>.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-61: Pelacakan Publik &amp; QR Crate Label</span>
+                <span class="meta-tag">Publik &amp; Zero PII</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-09', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- Scene 10 (Extended) -->
+        <article class="scene-card" id="card-sc-10" data-tier="extended" data-act="act-4">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-10</span>
+              <h3 class="scene-name">Inquiry Penawaran & Pembentukan Pesanan</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              03:45 – 04:15 (30s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/pembeli/produk/[id] &rarr; Buat Pesanan</span>
+                <span class="preview-shot-chip">Screencast Browser</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="border: 1px solid var(--brand-border); background: var(--brand-tint); border-radius: 4px; padding: 8px; font-size: 9.5px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: bold; color: var(--brand);">PESANAN AKTIF DITERBITKAN</div>
+                  <div style="font-size: 8.5px; color: var(--ink-muted);">150 kg Tomat Merah &bull; Total: Rp4.425.000</div>
+                </div>
+                <div class="font-mono" style="font-weight: bold; background: #ffffff; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line);">
+                  KODE: TR-9421
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Nada transaksi, dinamis] Pembeli memasukkan pesanan kuantitas 150 kg dan menyetujui penawaran. Melalui alur terintegrasi, pesanan resmi terbentuk dengan status menunggu penjemputan logistik dan kode serah terima transaksi yang aman."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Di form detail produk pembeli, masukkan kuantitas 150 kg, klik <strong>"Kirim Penawaran / Buat Pesanan"</strong>. Tampilkan kartu pesanan aktif dengan rincian jadwal jemput dan token verifikasi transaksi.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-45: Alur Inquiry-Order &amp; F-47: Timeline Transaksi</span>
+                <span class="meta-tag">Pesanan Aktif</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-10', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- ==========================================
+         ACT 5: LOGISTIK & SERAH TERIMA
+         ========================================== -->
+    <div class="act-wrapper" data-act="act-5">
+      <div class="act-header">
+        <div class="act-title-block">
+          <span class="act-number">ACT 5</span>
+          <h2 class="act-title font-display">Konsolidasi Rute Dingin & Verifikasi Handshake RPC</h2>
+        </div>
+        <div class="act-timing">Durasi Babak: 65 detik</div>
+      </div>
+
+      <div class="scene-grid">
+
+        <!-- Scene 11 (Extended) -->
+        <article class="scene-card" id="card-sc-11" data-tier="extended" data-act="act-5">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-11</span>
+              <h3 class="scene-name">Konsolidasi Rute Nearest-Neighbour & Rantai Dingin</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              04:15 – 04:55 (40s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/admin/rute &bull; Peta Konsolidasi</span>
+                <span class="preview-shot-chip">Screencast Browser (Interactive Map)</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; padding: 3px 0;">
+                <div>
+                  <div style="font-weight: 700; color: var(--ink);">RUTE KONSOLIDASI #01 (SLEMAN SENTRA)</div>
+                  <div style="color: var(--brand); font-weight: 600;">3 Titik Petani &rarr; Gudang Pengolahan</div>
+                </div>
+                <div>
+                  <span style="background: var(--brand-tint); color: var(--brand); padding: 2px 6px; border-radius: 3px; font-weight: bold; font-family: var(--font-mono);">Hemat 42% BBM</span>
+                </div>
+              </div>
+              <div style="font-size: 8px; color: var(--ink-muted); margin-top: 3px;">
+                Checklist Suhu: 8°C &bull; Sirkulasi Udara: Normal &bull; Wadah Sanitasi: Sesuai
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Solusi logistik, berbobot] Pengiriman terpisah oleh petani kecil memicu pemborosan BBM dan kerusakan mutu di jalan. Masuk sebagai <strong>Admin Koperasi</strong> di /admin/rute. Fitur <strong>Perencana Konsolidasi Rute</strong> mengelompokkan penjemputan multi-petani dengan algoritma Nearest-Neighbour. Sistem menghitung penghematan 42% BBM serta menyediakan <strong>checklist kepatuhan rantai dingin</strong> untuk mencegah pembusukan selama perjalanan."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                1-Tap Login sebagai Admin di `/demo`, buka menu `/admin/rute`. Tunjukkan peta interaktif dengan 3 titik penjemputan petani, sorot kartu kalkulasi hemat BBM dan checklist kepatuhan rantai dingin (*cold-chain checklist*).
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-50: Konsolidasi Rute Nearest-Neighbour &amp; F-52: Cold-Chain</span>
+                <span class="meta-tag">Admin Koperasi</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-11', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- Scene 12 -->
+        <article class="scene-card" id="card-sc-12" data-tier="core" data-act="act-5">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-12</span>
+              <span class="badge-core-star">★ Inti Ringkas</span>
+              <h3 class="scene-name">Verifikasi Serah Terima Kode Aman (Server RPC)</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              03:20 – 03:45 (25s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/petani/pesanan/[id] &rarr; Verifikasi</span>
+                <span class="preview-shot-chip">Screencast Browser</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="text-align: center; padding: 6px 0;">
+                <div style="font-size: 11px; font-weight: 700; color: var(--brand);">SERAH TERIMA BERHASIL DIVERIFIKASI</div>
+                <div style="font-size: 8.5px; color: var(--ink-muted); margin-top: 2px;">Supabase RPC Check: Cocok &bull; Berat Aktual: 150 kg &bull; Status: Selesai</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Konklusif & mantap] Ketika panen tiba di gudang tujuan, serah terima diselesaikan dengan memasukkan kode pencocokan unik. <strong>Pencocokan terjadi langsung di sisi server melalui RPC Supabase</strong>, bukan di browser. Ini memastikan kepastian pembayaran dan menutup transaksi secara aman tanpa risiko penipuan."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Buka pesanan berstatus serah terima, masukkan kode pencocokan, lalu klik <strong>"Verifikasi Serah Terima"</strong>. Tunjukkan badge status berubah seketika menjadi "Selesai" dengan konfirmasi berat aktual.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">F-48: Verifikasi Serah Terima Server RPC</span>
+                <span class="meta-tag">Transaksi Tuntas</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-12', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- ==========================================
+         ACT 6: DAMPAK & PENUTUP
+         ========================================== -->
+    <div class="act-wrapper" data-act="act-6">
+      <div class="act-header">
+        <div class="act-title-block">
+          <span class="act-number">ACT 6</span>
+          <h2 class="act-title font-display">Dashboard Dampak Lingkungan & Penutup Resmi</h2>
+        </div>
+        <div class="act-timing">Durasi Babak: 45 detik</div>
+      </div>
+
+      <div class="scene-grid">
+
+        <!-- Scene 13 (Extended) -->
+        <article class="scene-card" id="card-sc-13" data-tier="extended" data-act="act-6">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-13</span>
+              <h3 class="scene-name">Dashboard Dampak Nyata & Telemetri AI Health</h3>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              04:55 – 05:20 (25s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">/petani/dampak &amp; /admin</span>
+                <span class="preview-shot-chip">Screencast Browser</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 9.5px;">
+                <div style="border: 1px solid var(--brand-border); background: var(--brand-tint); border-radius: 4px; padding: 6px;">
+                  <div style="font-size: 8px; color: var(--brand-deep); font-weight: bold;">PANGAN TERSELAMATKAN</div>
+                  <div style="font-size: 14px; font-weight: 800; color: var(--brand);">1.240 kg</div>
+                  <div style="font-size: 8px; color: var(--brand-deep);">Setara 482 kg CO₂e dicegah</div>
+                </div>
+                <div style="border: 1px solid var(--line); background: var(--canvas-subtle); border-radius: 4px; padding: 6px;">
+                  <div style="font-size: 8px; color: var(--ink-muted); font-weight: bold;">AI ENGINE HEALTH</div>
+                  <div style="font-size: 14px; font-weight: 800; color: var(--ink);">200 OK &bull; 142ms</div>
+                  <div style="font-size: 8px; color: var(--ink-subtle);">FastAPI Container Healthy</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Bangga & ilmiah] Setiap transaksi tercatat dalam <strong>Dashboard Dampak Lingkungan</strong>. Kami menghitung kilogram sayuran yang terselamatkan dari pemborosan dan estimasi emisi gas rumah kaca yang berhasil dicegah memakai faktor ilmiah <strong>Poore & Nemecek dalam jurnal Science</strong>. Di panel admin, telemetri server AI terpantau real-time dengan latensi inferensi di bawah 200 milidetik."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual & Panduan Rekaman</span>
+              <div class="action-guide">
+                Buka `/petani/dampak`, sorot kartu metrik pangan terselamatkan dan reduksi CO₂e. Beralih cepat ke `/admin` untuk memperlihatkan panel kesehatan AI FastAPI yang berstatus aktif (*healthy*).
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">Metodologi Emisi: Poore &amp; Nemecek (Science 2018)</span>
+                <span class="meta-tag">Kalkulasi Dampak Nyata</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-13', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <!-- Scene 14 (Core / Closing) -->
+        <article class="scene-card" id="card-sc-14" data-tier="core" data-act="act-6">
+          <div class="scene-card-header">
+            <div class="scene-id-badge">
+              <span class="scene-num">SC-14</span>
+              <h3 class="scene-name">Closing Call-to-Action &amp; Penutup Resmi HoloDev</h3>
+              <span class="badge-core-star" title="Tampil di Alur Ringkas &amp; Alur Lengkap">★ Alur Inti</span>
+            </div>
+            <div class="scene-time-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              03:25 – 03:45 (20s) / 05:20 – 05:40 (20s)
+            </div>
+          </div>
+
+          <div class="scene-preview-box">
+            <div class="preview-canvas">
+              <div class="preview-top-bar">
+                <span class="preview-url-chip font-mono">pantas-ai.vercel.app &bull; /tentang</span>
+                <span class="preview-shot-chip">Shot: Closing Card, Identitas Tim &amp; Web Link</span>
+              </div>
+              <!-- Wireframe -->
+              <div style="text-align: center; padding: 10px 0;">
+                <div style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--brand);">PANTAS</div>
+                <div style="font-size: 12px; font-weight: 700; color: var(--ink); margin-top: 2px;">Setiap Panen Pantas Dihargai</div>
+                <div style="font-size: 10px; color: var(--ink-muted); margin-top: 6px; font-family: var(--font-mono);">
+                  pantas-ai.vercel.app &bull; github.com/astrorehan/pantas
+                </div>
+                <div style="margin-top: 8px; font-size: 10px; font-weight: 600; color: var(--brand-deep); background: var(--brand-tint); display: inline-block; padding: 3px 10px; border-radius: var(--radius-sm); border: 1px solid var(--brand-border);">
+                  Tim Inilah 4 trio &bull; Universitas Gadjah Mada &bull; HoloDev HOLOGY 9.0 UB
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene-body">
+            <div class="content-block">
+              <div class="content-header-row">
+                <span class="content-label">Naskah Voiceover (Dubbing)</span>
+                <button class="btn-copy-vo" onclick="copyVO(this)">Salin Naskah</button>
+              </div>
+              <p class="voiceover-quote">
+                "[Hangat &amp; tegas] <em>'Selisih satu tingkat grade menentukan penghasilan satu keluarga petani. Sekarang, selisih itu bisa dihitung, dan bisa dibantah.'</em> PANTAS membuktikan bahwa teknologi cerdas dan kejujuran metodologis dapat menghadirkan keadilan nyata bagi rantai pasok hortikultura Indonesia. Terima kasih kepada dewan juri <strong>HoloDev HOLOGY 9.0 Universitas Brawijaya</strong>. Silakan uji coba langsung aplikasi kami melalui tautan demo yang telah kami sediakan. Wassalamu'alaikum warahmatullahi wabarakatuh."
+              </p>
+            </div>
+
+            <div class="content-block">
+              <span class="content-label">Aksi Visual &amp; Panduan Rekaman</span>
+              <div class="action-guide">
+                Tampilkan kartu penutup resmi dengan identitas tim UGM ("Inilah 4 trio"), tautan demo live Vercel, repo GitHub, dan QR code pengujian. BGM naik perlahan (*fade-out*) di detik ke-18 hingga hening di detik ke-20.
+              </div>
+            </div>
+
+            <div class="scene-meta-row">
+              <div class="meta-tags-cluster">
+                <span class="lower-thirds-tag">Terima Kasih Dewan Juri HOLOGY 9.0</span>
+                <span class="meta-tag">Closing Tim UGM</span>
+                <span class="meta-tag">Durasi: 20s</span>
+              </div>
+              <label class="check-completed-label">
+                <input type="checkbox" onchange="syncCheck('sc-14', this.checked)"> Selesai Direkam
+              </label>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- =========================================================
+       RECORDING TIPS & COMPETITION GUIDELINES
+       ========================================================= -->
+  <section class="guideline-section">
+    <div class="guideline-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 700;">Panduan Produksi & Ketentuan Resmi HoloDev HOLOGY 9.0</h3>
+    </div>
+
+    <div class="guideline-grid">
+      <div class="guideline-card">
+        <h4>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+          Spesifikasi Rekaman Layar
+        </h4>
+        <ul>
+          <li><strong>Resolusi Layar:</strong> Rekam pada 1080p (1920&times;1080) 60fps agar font JetBrains Mono dan bounding box tajam.</li>
+          <li><strong>Browser Setup:</strong> Bersihkan bookmark bar, gunakan zoom level 100%, sembunyikan ekstensi Chrome yang tidak relevan.</li>
+          <li><strong>Kecepatan Kursor:</strong> Gerakkan kursor dengan tenang dan beri jeda 0.5–1 detik sebelum klik tombol penting.</li>
+        </ul>
+      </div>
+
+      <div class="guideline-card">
+        <h4>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+          Ketentuan Audio & Voiceover
+        </h4>
+        <ul>
+          <li><strong>Artikulasi:</strong> Nada bicara profesional, tidak terburu-buru (~130 kata per menit).</li>
+          <li><strong>Background Music (BGM):</strong> Musik akustik instrumental santai dengan volume ducking di -24dB saat narator berbicara.</li>
+          <li><strong>Gladi Resik:</strong> Gunakan widget stopwatch di atas untuk melatih ritme sebelum take audio sesungguhnya.</li>
+        </ul>
+      </div>
+
+      <div class="guideline-card">
+        <h4>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Ketentuan Submisi & Fallback
+        </h4>
+        <ul>
+          <li><strong>Format Judul Video:</strong> <code>HoloDev_HOLOGY9.0_Inilah 4 trio_PANTAS</code></li>
+          <li><strong>Platform Unggah:</strong> YouTube (Public/Unlisted) atau Google Drive (Anyone with link can view).</li>
+          <li><strong>Deadline Submisi:</strong> <strong>7 September 2026 pukul 23.59 WIB</strong> di <code>hology.ub.ac.id</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       BAGIAN PENUTUP & LEMBAR PENGESAHAN RESMI TIM
+       ========================================================= -->
+  <section class="penutup-section" id="penutup-resmi">
+    <div class="penutup-header">
+      <div>
+        <div class="meta-badges" style="margin-bottom: 8px;">
+          <span class="badge badge-brand">Bagian Penutup</span>
+          <span class="badge badge-clay">HoloDev HOLOGY 9.0</span>
+          <span class="badge badge-neutral">Universitas Brawijaya</span>
+        </div>
+        <h2 class="penutup-header-title">Bagian Penutup: Pernyataan, Komitmen Tim &amp; Checklist Submisi</h2>
+        <p class="penutup-header-sub">
+          Dokumen pengesahan dan verifikasi akhir kelayakan produksi video demo serta kelengkapan berkas submisi tim pengembang PANTAS.
+        </p>
+      </div>
+      <div class="no-print">
+        <button class="btn-action" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="font-size: 11.5px; padding: 6px 12px; background: var(--canvas); color: var(--ink); border: 1px solid var(--line-strong);">
+          ↑ Kembali ke Atas
+        </button>
+      </div>
+    </div>
+
+    <!-- Executive Quote -->
+    <div class="penutup-hero-quote">
+      <blockquote>
+        "Selisih satu tingkat grade menentukan penghasilan satu keluarga petani. Sekarang selisih itu bisa dihitung, dan bisa dibantah. PANTAS melaporkan angka apa adanya beserta konteksnya — karena kejujuran metodologis adalah nilai jual, bukan kelemahan."
+      </blockquote>
+      <cite>
+        — Tim <strong>Inilah 4 trio</strong> (Universitas Gadjah Mada) &bull; Pengembang Platform PANTAS (Penilaian Agrikultur Terstandar &amp; Andal)
+      </cite>
+    </div>
+
+    <!-- 3 Kolom Penjelasan Penutup -->
+    <div class="penutup-grid">
+      <div class="penutup-card">
+        <h4>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Kejujuran Metodologis AI
+        </h4>
+        <p>
+          PANTAS menolak menyamarkan estimasi sebagai kepastian mutlak. Kalibrasi fisik koin koin Rp500 (27mm) dan batas toleransi densitas per komoditas dihitung terbuka dan tervalidasi via audit hash SHA-256 yang mustahil dimanipulasi sepihak.
+        </p>
+      </div>
+
+      <div class="penutup-card">
+        <h4>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+          Dampak Sirkular Food Loss
+        </h4>
+        <p>
+          Menjawab subtema <em>Ketahanan Pangan &amp; Pertanian Cerdas</em> HOLOGY 9.0: mengalirkan panen Grade B &amp; C langsung ke industri pengolahan saus/pasta, memangkas 62.8% risiko kehilangan pangan serta mereduksi emisi CO2e sesuai kalkulator Science 2018.
+        </p>
+      </div>
+
+      <div class="penutup-card">
+        <h4>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          Akses Sandbox Dewan Juri
+        </h4>
+        <ul>
+          <li><strong>Live URL:</strong> <a href="https://pantas-ai.vercel.app" target="_blank" style="color: var(--brand); font-family: var(--font-mono); font-weight: 600;">pantas-ai.vercel.app</a></li>
+          <li><strong>Akses Petani:</strong> 1-tap bypass <code>warsono@pantas.id</code></li>
+          <li><strong>Akses Industri:</strong> 1-tap bypass <code>rina@sedapmakmur.co.id</code></li>
+          <li><strong>Audit Publik:</strong> Tanpa login di <code>/lacak/[hash]</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Checklist Pra-Submisi HoloDev -->
+    <div class="checklist-container">
+      <div class="checklist-title">
+        <span style="display: flex; align-items: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          Checklist Verifikasi Submisi Penyisihan HoloDev (Deadline: 7 September 2026, 23.59 WIB)
+        </span>
+        <span style="font-size: 11px; font-weight: 600; color: var(--brand);" id="submission-check-summary">
+          Tersimpan Otomatis di Peramban
+        </span>
+      </div>
+
+      <div class="checklist-items-grid">
+        <label class="check-item">
+          <input type="checkbox" id="chk-sub-1" onchange="syncSubCheck('1', this.checked)">
+          <span><strong>1. Format Judul Video:</strong> Sesuai format <code>HoloDev_HOLOGY9.0_Inilah 4 trio_PANTAS</code></span>
+        </label>
+
+        <label class="check-item">
+          <input type="checkbox" id="chk-sub-2" onchange="syncSubCheck('2', this.checked)">
+          <span><strong>2. Platform &amp; Hak Akses:</strong> YouTube (Public) atau Google Drive (Anyone with the link can view)</span>
+        </label>
+
+        <label class="check-item">
+          <input type="checkbox" id="chk-sub-3" onchange="syncSubCheck('3', this.checked)">
+          <span><strong>3. Durasi Video Aman:</strong> Durasi &le; 10:00 (Rekomendasi Alur Ringkas: 03:45)</span>
+        </label>
+
+        <label class="check-item">
+          <input type="checkbox" id="chk-sub-4" onchange="syncSubCheck('4', this.checked)">
+          <span><strong>4. Identitas Tim &amp; Kampus:</strong> Mencantumkan nama tim "Inilah 4 trio" &amp; Universitas Gadjah Mada</span>
+        </label>
+
+        <label class="check-item">
+          <input type="checkbox" id="chk-sub-5" onchange="syncSubCheck('5', this.checked)">
+          <span><strong>5. Proposal PDF &le; 30 Halaman:</strong> Ukuran &le; 20 MB: <code>Inilah 4 trio_HoloDev_HOLOGY9.0_M. Raihan Surya_Universitas Gadjah Mada</code></span>
+        </label>
+
+        <label class="check-item">
+          <input type="checkbox" id="chk-sub-6" onchange="syncSubCheck('6', this.checked)">
+          <span><strong>6. Tautan Video di Proposal:</strong> Link video demo tercantum jelas di proposal sebelum di-export ke PDF</span>
+        </label>
+
+        <label class="check-item">
+          <input type="checkbox" id="chk-sub-7" onchange="syncSubCheck('7', this.checked)">
+          <span><strong>7. Folder Google Drive Lengkap:</strong> Berisi link deployment, video demo, zip source code + README.md, dan dokumen teknis</span>
+        </label>
+
+        <label class="check-item">
+          <input type="checkbox" id="chk-sub-8" onchange="syncSubCheck('8', this.checked)">
+          <span><strong>8. Pengumpulan Tepat Waktu:</strong> Diunggah melalui <code>https://hology.ub.ac.id/</code> sebelum deadline</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Signatures / Pengesahan Tim -->
+    <div class="signatures-section">
+      <div class="signatures-title">
+        <span>Lembar Komitmen &amp; Tanda Tangan Tim Pengembang</span>
+        <span class="font-mono" style="font-size: 11px; color: var(--ink-subtle);">Yogyakarta, September 2026</span>
+      </div>
+      <p class="signatures-statement">
+        Dengan ini kami menyatakan bahwa seluruh artefak dan solusi perangkat lunak <strong>PANTAS</strong> disusun secara orisinal oleh Tim <strong>Inilah 4 trio</strong>. Kami menyatakan kesiapan penuh untuk mengikuti seluruh rangkaian babak kompetisi HoloDev HOLOGY 9.0 serta berkomitmen untuk hadir secara langsung (luring) pada babak final di Auditorium Algoritma G2 Fakultas Ilmu Komputer, Universitas Brawijaya apabila dinyatakan lolos 10 besar.
+      </p>
+
+      <div class="signatures-grid">
+        <div class="signature-box">
+          <div class="signature-role">Ketua Tim / AI &amp; Backend</div>
+          <div class="signature-space">( Tanda Tangan )</div>
+          <div>
+            <div class="signature-name">M. Choirudin Ammar</div>
+            <div class="signature-id">Universitas Gadjah Mada</div>
+          </div>
+        </div>
+
+        <div class="signature-box">
+          <div class="signature-role">Anggota 1 / Fullstack Developer</div>
+          <div class="signature-space">( Tanda Tangan )</div>
+          <div>
+            <div class="signature-name">M. Raihan Surya</div>
+            <div class="signature-id">Universitas Gadjah Mada</div>
+          </div>
+        </div>
+
+        <div class="signature-box">
+          <div class="signature-role">Anggota 2 / Frontend &amp; UI/UX</div>
+          <div class="signature-space">( Tanda Tangan )</div>
+          <div>
+            <div class="signature-name">Ahmad Rafi</div>
+            <div class="signature-id">Universitas Gadjah Mada</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Narahubung Panitia -->
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--ink-muted);">
+        <div>
+          <strong>Narahubung Panitia HoloDev HOLOGY 9.0:</strong>
+          Muhammad Zacky Al Ghifari (WA: <code>085641060887</code> &bull; LINE: <code>@maestro747</code>) &bull; 
+          Nayla Nur Amalia (WA: <code>081222318396</code> &bull; LINE: <code>@06nayfrier</code>)
+        </div>
+        <div class="font-mono" style="font-size: 11px; color: var(--brand); font-weight: 600;">
+          Final Day: 3 Oktober 2026 &bull; FILKOM UB
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer style="margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--ink-subtle);">
+    <div>
+      <strong>PANTAS</strong> &bull; Cabang Lomba HoloDev HOLOGY 9.0 FILKOM UB &bull; Tim <strong>Inilah 4 trio</strong> (Universitas Gadjah Mada)
+    </div>
+    <div class="font-mono">
+      Dokumen Storyboard Produksi v2.0 &bull; Terverifikasi Kodebase 2026
+    </div>
+  </footer>
+
+</div>
+
+<!-- Toast Notice -->
+<div class="toast-notice" id="toast-notice">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+  <span id="toast-msg">Naskah voiceover berhasil disalin ke clipboard!</span>
+</div>
+
+<!-- =========================================================
+     CLIENT-SIDE LOGIC & INTERACTIVE CONTROLS
+     ========================================================= -->
+<script>
+  // State variables
+  let currentFlowMode = 'compact'; // 'compact' | 'extended'
+  let currentViewMode = 'cards';   // 'cards' | 'table'
+  let currentActFilter = 'all';
+
+  // Stopwatch state
+  let swInterval = null;
+  let swSeconds = 0;
+
+  // Set Flow Mode (Alur Ringkas vs Alur Lengkap)
+  function setFlowMode(mode) {
+    currentFlowMode = mode;
+    
+    // Update button states
+    document.getElementById('btn-flow-compact').classList.toggle('active', mode === 'compact');
+    document.getElementById('btn-flow-extended').classList.toggle('active', mode === 'extended');
+
+    // Update stats pills
+    if (mode === 'compact') {
+      document.getElementById('stat-duration').innerHTML = '03:45 <span class="stat-sub">(225 detik)</span>';
+      document.getElementById('stat-scenes').innerText = '7 Adegan Inti';
+    } else {
+      document.getElementById('stat-duration').innerHTML = '07:30 <span class="stat-sub">(450 detik)</span>';
+      document.getElementById('stat-scenes').innerText = '14 Adegan Lengkap';
+    }
+
+    applyFilters();
+    updateProgressDisplay();
+  }
+
+  // Set View Mode (Cards vs Table)
+  function setViewMode(mode) {
+    currentViewMode = mode;
+    document.getElementById('btn-view-cards').classList.toggle('active', mode === 'cards');
+    document.getElementById('btn-view-table').classList.toggle('active', mode === 'table');
+
+    const cardsView = document.getElementById('cards-view');
+    const tableView = document.getElementById('callsheet-view');
+
+    if (mode === 'table') {
+      cardsView.style.display = 'none';
+      tableView.style.display = 'block';
+    } else {
+      cardsView.style.display = 'block';
+      tableView.style.display = 'none';
+    }
+  }
+
+  // Filter by Act
+  function filterAct(actId, btn) {
+    currentActFilter = actId;
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    applyFilters();
+  }
+
+  // Unified Filter Application
+  function applyFilters() {
+    // Filter cards
+    const cards = document.querySelectorAll('.scene-card');
+    cards.forEach(card => {
+      const tier = card.getAttribute('data-tier');
+      const act = card.getAttribute('data-act');
+      
+      const tierMatch = (currentFlowMode === 'extended') || (tier === 'core');
+      const actMatch = (currentActFilter === 'all') || (act === currentActFilter);
+
+      card.style.display = (tierMatch && actMatch) ? 'flex' : 'none';
+    });
+
+    // Check act wrappers visibility
+    const actWrappers = document.querySelectorAll('.act-wrapper');
+    actWrappers.forEach(wrapper => {
+      const visibleCards = wrapper.querySelectorAll('.scene-card:not([style*="display: none"])');
+      const actId = wrapper.getAttribute('data-act');
+      const actMatch = (currentActFilter === 'all') || (actId === currentActFilter);
+      
+      wrapper.style.display = (actMatch && visibleCards.length > 0) ? 'block' : 'none';
+    });
+
+    // Filter table rows
+    const rows = document.querySelectorAll('table.callsheet-table tbody tr');
+    rows.forEach(row => {
+      const tier = row.getAttribute('data-tier');
+      const act = row.getAttribute('data-act');
+
+      const tierMatch = (currentFlowMode === 'extended') || (tier === 'core');
+      const actMatch = (currentActFilter === 'all') || (act === currentActFilter);
+
+      row.style.display = (tierMatch && actMatch) ? '' : 'none';
+    });
+  }
+
+  // Checklist Synchronisation (Robust LocalStorage)
+  function getStorageKey(id) {
+    return 'pantas_demo_scene_' + id;
+  }
+
+  function syncCheck(sceneId, isChecked) {
+    const key = getStorageKey(sceneId);
+    if (isChecked) {
+      localStorage.setItem(key, 'done');
+    } else {
+      localStorage.removeItem(key);
+    }
+
+    // Update Card
+    const card = document.getElementById('card-' + sceneId);
+    if (card) {
+      card.classList.toggle('completed', isChecked);
+      const cardCheckbox = card.querySelector('input[type="checkbox"]');
+      if (cardCheckbox) cardCheckbox.checked = isChecked;
+    }
+
+    // Update Table Row
+    const row = document.getElementById('row-' + sceneId);
+    if (row) {
+      row.classList.toggle('completed', isChecked);
+      const rowCheckbox = row.querySelector('input[type="checkbox"]');
+      if (rowCheckbox) rowCheckbox.checked = isChecked;
+    }
+
+    updateProgressDisplay();
+  }
+
+  function updateProgressDisplay() {
+    const totalScenes = currentFlowMode === 'compact' ? 7 : 14;
+    let completedCount = 0;
+
+    for (let i = 1; i <= 14; i++) {
+      const id = 'sc-' + (i < 10 ? '0' + i : i);
+      const row = document.getElementById('row-' + id);
+      const isCore = row?.getAttribute('data-tier') === 'core';
+      
+      if (currentFlowMode === 'compact' && !isCore) continue;
+
+      if (localStorage.getItem(getStorageKey(id)) === 'done') {
+        completedCount++;
+      }
+    }
+
+    const pct = Math.round((completedCount / totalScenes) * 100);
+    const progressText = document.getElementById('progress-text');
+    const progressBar = document.getElementById('progress-bar');
+
+    if (progressText) progressText.innerText = `${completedCount} / ${totalScenes} adegan (${pct}%)`;
+    if (progressBar) progressBar.style.width = `${pct}%`;
+  }
+
+  function resetAllChecklist() {
+    if (!confirm('Apakah Anda yakin ingin mereset seluruh checklist rekaman?')) return;
+    for (let i = 1; i <= 14; i++) {
+      const id = 'sc-' + (i < 10 ? '0' + i : i);
+      syncCheck(id, false);
+    }
+  }
+
+  // Submission Checklist in Bagian Penutup
+  function syncSubCheck(num, isChecked) {
+    const key = 'pantas_sub_check_' + num;
+    if (isChecked) {
+      localStorage.setItem(key, 'done');
+    } else {
+      localStorage.removeItem(key);
+    }
+    updateSubCheckSummary();
+  }
+
+  function restoreSubChecklist() {
+    for (let i = 1; i <= 8; i++) {
+      const isDone = localStorage.getItem('pantas_sub_check_' + i) === 'done';
+      const el = document.getElementById('chk-sub-' + i);
+      if (el) el.checked = isDone;
+    }
+    updateSubCheckSummary();
+  }
+
+  function updateSubCheckSummary() {
+    let checked = 0;
+    for (let i = 1; i <= 8; i++) {
+      if (localStorage.getItem('pantas_sub_check_' + i) === 'done') checked++;
+    }
+    const sumEl = document.getElementById('submission-check-summary');
+    if (sumEl) {
+      sumEl.innerText = `${checked} / 8 Syarat Terpenuhi (${Math.round((checked / 8) * 100)}%)`;
+      sumEl.style.color = checked === 8 ? 'var(--brand)' : 'var(--clay)';
+    }
+  }
+
+  // 1-Click Copy Voiceover
+  function copyVO(btn) {
+    const card = btn.closest('.scene-card');
+    const voText = card?.querySelector('.voiceover-quote')?.innerText || '';
+    
+    navigator.clipboard.writeText(voText).then(() => {
+      showToast('Naskah voiceover berhasil disalin ke clipboard!');
+    }).catch(() => {
+      showToast('Gagal menyalin naskah, silakan seleksi manual.');
+    });
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast-notice');
+    const toastMsg = document.getElementById('toast-msg');
+    if (!toast) return;
+    if (toastMsg) toastMsg.innerText = msg;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2400);
+  }
+
+  // Stopwatch Logic
+  function toggleStopwatch() {
+    const btn = document.getElementById('sw-btn');
+    if (swInterval) {
+      clearInterval(swInterval);
+      swInterval = null;
+      if (btn) btn.innerText = 'Lanjut';
+    } else {
+      swInterval = setInterval(() => {
+        swSeconds++;
+        const mins = String(Math.floor(swSeconds / 60)).padStart(2, '0');
+        const secs = String(swSeconds % 60).padStart(2, '0');
+        document.getElementById('sw-display').innerText = `${mins}:${secs}`;
+      }, 1000);
+      if (btn) btn.innerText = 'Jeda';
+    }
+  }
+
+  function resetStopwatch() {
+    if (swInterval) {
+      clearInterval(swInterval);
+      swInterval = null;
+    }
+    swSeconds = 0;
+    document.getElementById('sw-display').innerText = '00:00';
+    const btn = document.getElementById('sw-btn');
+    if (btn) btn.innerText = 'Mulai';
+  }
+
+  // Print Active View
+  function printActiveView() {
+    window.print();
+  }
+
+  // Initialize on Load
+  window.addEventListener('DOMContentLoaded', () => {
+    // Restore checklist states
+    for (let i = 1; i <= 14; i++) {
+      const id = 'sc-' + (i < 10 ? '0' + i : i);
+      if (localStorage.getItem(getStorageKey(id)) === 'done') {
+        syncCheck(id, true);
+      }
+    }
+
+    // Restore submission checklist in Bagian Penutup
+    restoreSubChecklist();
+    
+    // Set default mode: compact (Ringkas 3.5 Menit)
+    setFlowMode('compact');
+  });
+</script>
+
+</body>
+</html>

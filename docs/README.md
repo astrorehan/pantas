@@ -22,10 +22,8 @@ Selamat datang di pusat dokumentasi resmi **PANTAS** (*Platform Sistem Sortasi M
 | 🧠 **Spesifikasi AI Engine** | Penjelasan mendalam pipeline Dual-Stage YOLOv11, OpenCV Rule Engine, kalibrasi koin Rp500, gerbang plausibilitas, dan kartu rapor model. | [`docs/AI.md`](AI.md) & [`docs/AI_ENGINE.md`](AI_ENGINE.md) |
 | 🗄️ **Arsitektur Backend & Database** | Dokumentasi skema PostgreSQL Supabase, aturan Row-Level Security (RLS), seam arsitektur data, dan migrasi SQL. | [`docs/BACKEND.md`](BACKEND.md) |
 | 📊 **Pelacak Progres Fitur (Backlog)** | Pelacak status eksekusi 72 F-ID yang digenerate otomatis dari master PRD (93% selesai, 67/72 fitur). | [`docs/BACKLOG.md`](BACKLOG.md) |
-| 🔍 **Analisis Kesenjangan (Gap Analysis)** | Evaluasi menyeluruh terhadap kelengkapan fitur dan kepatuhan PRD. | [`docs/GAP_ANALYSIS.md`](GAP_ANALYSIS.md) |
 | 🎬 **Storyboard Video Demo (HTML)** | Storyboard interaktif dan siap cetak (*print-ready*) dengan pilihan **Alur Ringkas (3.5 Menit / 6 Adegan — Rekomendasi Cepat & Mudah)** dan **Alur Lengkap (7.5 Menit / 14 Adegan)**, dilengkapi stopwatch gladi resik, penyalin naskah 1-klik, dan checklist produksi persisten. | [`docs/STORYBOARD_DEMO.html`](STORYBOARD_DEMO.html) |
 | 📹 **Ketentuan Video Demo HoloDev** | Ringkasan spesifikasi, format nama file, platform unggah, dan rubrik video demo Guidebook HOLOGY 9.0. | [`docs/KETENTUAN_VIDEO_HOLODEV.md`](KETENTUAN_VIDEO_HOLODEV.md) |
-| 🎤 **Materi & Slide Pitch Deck** | Bank narasi presentasi 10 menit, bank tanya-jawab dewan juri, dan prompt pembuatan slide 16:9 berbasis HTML. | [`docs/MATERI_PRESENTASI.md`](MATERI_PRESENTASI.md) & [`docs/SLIDE_PRESENTASI.md`](SLIDE_PRESENTASI.md) |
 
 ---
 
@@ -75,8 +73,8 @@ Semua anggota merupakan mahasiswa aktif **Universitas Gadjah Mada (UGM)**:
 
 | Nama Anggota | NIM | Peran Utama | Fokus Kontribusi |
 | :--- | :--- | :--- | :--- |
-| **Muhammad Choirudin Ammar** | `25/556251/TK/62735` | **AI Engineer** | Arsitektur Dual-Stage YOLOv11, kurasi dataset & auto-masking, rule engine OpenCV geometri, kalibrasi koin Rp500, gerbang plausibilitas, dan set regresi otomatis. |
-| **Muhammad Raihan Surya** | `25/560713/TK/63338` | **Fullstack Developer (Lead)** | Aplikasi web Next.js 16 end-to-end, Supabase RLS & skema database, seam arsitektur data (`data.ts`/`store.tsx`), design system Panen v2, dan integrasi AI API. |
+| **Muhammad Choirudin Ammar** | `25/556251/TK/62735` | **AI Engineer (Lead)** | Arsitektur Dual-Stage YOLOv11, kurasi dataset & auto-masking, rule engine OpenCV geometri, kalibrasi koin Rp500, gerbang plausibilitas, dan set regresi otomatis. |
+| **Muhammad Raihan Surya** | `25/560713/TK/63338` | **Fullstack Developer** | Aplikasi web Next.js 16 end-to-end, Supabase RLS & skema database, seam arsitektur data (`data.ts`/`store.tsx`), design system Panen v2, dan integrasi AI API. |
 | **Ahmad Rafi Firdaus** | `25/560526/TK/63314` | **Product Ideation & Strategist** | Perumusan konsep produk, riset Food Loss & Waste (FLW), pemetaan keselarasan subtema HOLOGY 9.0, user journey petani & pembeli, formulasi harga adil. |
 
 ---

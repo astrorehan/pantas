@@ -80,7 +80,14 @@ export function LaporanGradingView({
   const { komposisi } = laporan.ringkasan_batch;
   const dominan = gradeDominan(komposisi);
   const agregat = "foto_terproses" in laporan ? laporan : null;
-  const objek = laporan.objek as BarisObjek[];
+  /* Laporan yang tersimpan sebelum kolom rincian per objek ada — dan basis
+     data demo yang belum di-seed ulang — menyimpan `hasil` tanpa `objek`,
+     `kalibrasi`, maupun `hash_audit`. Tipe menjanjikan ketiganya karena itulah
+     bentuk yang ditulis `PantasModel.predict()` hari ini, tetapi baris lama di
+     kolom jsonb tidak ikut berubah saat tipenya berubah, dan halaman detail
+     yang membacanya langsung akan mati sebelum satu piksel pun tergambar.
+     Larik kosong membuat sisa laporan tetap terbaca. */
+  const objek = (laporan.objek ?? []) as BarisObjek[];
   const total = laporan.objek_terdeteksi;
   const estimasi = laporan.ringkasan_batch.estimasi_berat;
 
@@ -311,6 +318,10 @@ function KartuPerkiraanBerat({
 function KartuKalibrasi({ laporan }: { laporan: LaporanGrading }) {
   const t = useTranslations("grading");
   const agregat = "foto_terproses" in laporan ? laporan : null;
+
+  // Laporan lama tidak menyimpan blok kalibrasi; tanpa itu kartu ini tidak
+  // punya apa pun untuk dikatakan — sama seperti kartu berat di atas.
+  if (!laporan.kalibrasi) return null;
   const valid = laporan.kalibrasi.valid;
 
   return (
@@ -338,7 +349,7 @@ function KartuKalibrasi({ laporan }: { laporan: LaporanGrading }) {
         {agregat && (
           <p className="type-body-sm tnum pt-1 text-muted">
             {t("coin_multi", {
-              calibrated: agregat.kalibrasi.foto_terkalibrasi,
+              calibrated: agregat.kalibrasi?.foto_terkalibrasi ?? 0,
               processed: agregat.foto_terproses,
             })}
           </p>
@@ -440,7 +451,7 @@ function DetailTeknis({
           k: t("tech_uniformity"),
           v: persen(laporan.ringkasan_batch.skor_keseragaman),
         },
-        ...("px_per_mm2" in laporan.kalibrasi
+        ...(laporan.kalibrasi && "px_per_mm2" in laporan.kalibrasi
           ? [
               {
                 k: t("tech_px"),

@@ -63,7 +63,7 @@ Turbopack, digzip pada level 6 (level yang dipakai mayoritas CDN).
 
 | ID | Persyaratan |
 | :--- | :--- |
-| NFR-10 | **Uptime ≥ 99% selama 5–23 Agustus 2026.** Ini adalah persyaratan lomba, bukan aspirasi. |
+| NFR-10 | **Uptime ≥ 99% selama 8–21 September 2026 (jendela penjurian penyisihan).** Ini adalah persyaratan lomba, bukan aspirasi. |
 | NFR-11 | Layanan AI tidak boleh tidur. Cron warm-keeper memanggil `/health` setiap 5 menit. |
 | NFR-12 | Bila layanan AI tidak tersedia, aplikasi tetap berfungsi penuh kecuali grading langsung, dan menampilkan status yang jujur — bukan spinner abadi. |
 | NFR-13 | Proyek Supabase tidak boleh masuk status *paused*. Cron harian menyentuh database. |

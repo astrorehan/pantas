@@ -715,7 +715,7 @@ Route `/demo` menampilkan tiga kartu kredensial dengan tombol "Masuk sebagai ini
 **Acceptance criteria**
 - [ ] Seed dijalankan lewat migrasi Supabase yang dapat diulang (`supabase/seed_demo.sql`), bukan penyisipan manual.
 - [ ] Koordinat lat/lng demo benar-benar berada di DIY dan terlihat wajar saat dibuka di `/pembeli/peta`.
-- [ ] Endpoint `POST /api/demo/reset` (dilindungi header token) mengembalikan ketiga akun ke keadaan awal. Dijalankan otomatis via Vercel Cron setiap 6 jam selama 5–23 Agustus.
+- [ ] Endpoint `POST /api/demo/reset` (dilindungi header token) mengembalikan ketiga akun ke keadaan awal. Dijalankan otomatis via Vercel Cron setiap 6 jam selama jendela penjurian 8–21 September.
 - [ ] Data demo ditandai `is_demo = true`; tidak pernah tercampur ke agregat dampak platform nyata.
 - [ ] Kredensial demo juga dicantumkan di README repositori dan di halaman terakhir pitch deck.
 
@@ -1559,7 +1559,7 @@ Turbopack, digzip pada level 6 (level yang dipakai mayoritas CDN).
 
 | ID | Persyaratan |
 | :--- | :--- |
-| NFR-10 | **Uptime ≥ 99% selama 5–23 Agustus 2026.** Ini adalah persyaratan lomba, bukan aspirasi. |
+| NFR-10 | **Uptime ≥ 99% selama 8–21 September 2026 (jendela penjurian penyisihan).** Ini adalah persyaratan lomba, bukan aspirasi. |
 | NFR-11 | Layanan AI tidak boleh tidur. Cron warm-keeper memanggil `/health` setiap 5 menit. |
 | NFR-12 | Bila layanan AI tidak tersedia, aplikasi tetap berfungsi penuh kecuali grading langsung, dan menampilkan status yang jujur — bukan spinner abadi. |
 | NFR-13 | Proyek Supabase tidak boleh masuk status *paused*. Cron harian menyentuh database. |
@@ -1991,7 +1991,7 @@ Sebuah fitur selesai bila **seluruh** poin terpenuhi:
 
 | # | Pertanyaan | Butuh keputusan sebelum |
 | :--- | :--- | :--- |
-| Q-3b | Pembagian kontribusi per anggota tim: Ammar (AI Engineer), Raihan (Fullstack Dev/Lead), Rafi (Product Ideation) | Final Submission 7 Sept |
+| Q-3b | Pembagian kontribusi per anggota tim: Ammar (Team Lead & AI Engineer), Raihan (Fullstack Developer), Rafi (Product Ideation) | Final Submission 7 Sept |
 | Q-4 | Apakah APK (TWA) dibuat sebagai bonus? Guidebook hanya mewajibkan APK untuk produk **berbasis mobile**; PANTAS dikumpulkan sebagai produk **berbasis web**, jadi URL hosting aktif sudah memenuhi syarat | Final Submission 7 Sept |
 | Q-7 | Faktor tomat: pakai `0,53` konservatif atau tampilkan rentang `0,53–2,09`? Rekomendasi PRD: konservatif (§14.3) | Sebelum F-65 mendarat |
 | Q-8 | Apakah `harga_acuan` untuk Yogyakarta diisi dari PIHPS wilayah DIY, bukan rata-rata nasional? | Sebelum F-22 |

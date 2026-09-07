@@ -97,8 +97,8 @@ Semua anggota merupakan mahasiswa aktif **Universitas Gadjah Mada (UGM)**:
 
 | Anggota Tim | NIM | Peran | Tanggung Jawab Utama |
 | :--- | :--- | :--- | :--- |
-| **Muhammad Choirudin Ammar** | `25/556251/TK/62735` | **AI Engineer** | Arsitektur Dual-Stage YOLOv11, kurasi dataset & auto-masking latar putih, OpenCV geometry rule engine, kalibrasi skala koin Rp500, gerbang plausibilitas biologis, dan set regresi otomatis (`pytest`). |
-| **Muhammad Raihan Surya** | `25/560713/TK/63338` | **Fullstack Developer (Lead)** | Aplikasi web Next.js 16 end-to-end, Supabase RLS & skema PostgreSQL (18 migrasi), rancangan arsitektur seam data (`data.ts`/`store.tsx`), design system Panen v2, dan integrasi API. |
+| **Muhammad Choirudin Ammar** | `25/556251/TK/62735` | **AI Engineer (Lead)** | Arsitektur Dual-Stage YOLOv11, kurasi dataset & auto-masking latar putih, OpenCV geometry rule engine, kalibrasi skala koin Rp500, gerbang plausibilitas biologis, dan set regresi otomatis (`pytest`). |
+| **Muhammad Raihan Surya** | `25/560713/TK/63338` | **Fullstack Developer** | Aplikasi web Next.js 16 end-to-end, Supabase RLS & skema PostgreSQL (18 migrasi), rancangan arsitektur seam data (`data.ts`/`store.tsx`), design system Panen v2, dan integrasi API. |
 | **Ahmad Rafi Firdaus** | `25/560526/TK/63314` | **Product Ideation & Strategist** | Perumusan ide dan tesis produk, riset Food Loss & Waste (FLW), pemetaan keselarasan subtema HOLOGY 9.0, user journey petani & pembeli, formulasi harga adil, dan analisis dampak ekonomi. |
 
 ---
@@ -121,20 +121,13 @@ cd ..
 npm run dev
 ```
 
-Perintah tersebut menyalakan frontend di `http://localhost:3000` dan grading engine di `http://localhost:7860`, lalu mengarahkan frontend ke engine lokal secara otomatis. Menghentikan perintah juga menghentikan kedua service. Swagger UI tersedia di `http://localhost:7860/docs`.
+Aplikasi web dapat diakses di `http://localhost:3000` dan AI Service di `http://localhost:7860`.
 
-Deployment grading engine menerima origin browser tambahan melalui `PANTAS_ALLOWED_ORIGINS` (daftar URL yang dipisahkan koma). Origin lokal dan deployment PANTAS utama sudah diizinkan secara bawaan.
+---
 
-Untuk verifikasi otomatis:
+## 👤 Akun Demo Penjurian
 
-```bash
-npm test             # unit test frontend
-npm run test:e2e     # FastAPI + Next.js + Chromium
-npm run check:health -- --url https://pantas-ai.vercel.app
-```
-
-### 3. Akun Uji Coba (Demo Mode)
-Gunakan akun uji coba berikut atau klik tombol **1-Tap Login** di halaman `/demo`:
+Untuk kemudahan pengujian tanpa perlu konfigurasi SMS OTP:
 - **Akun Petani:** `petani@demo.pantas.id` (Sandi: `demo1234`)
 - **Akun Pembeli Industri:** `pembeli@demo.pantas.id` (Sandi: `demo1234`)
 - **Akun Koperasi / Admin:** `admin@demo.pantas.id` (Sandi: `demo1234`)
@@ -143,12 +136,11 @@ Gunakan akun uji coba berikut atau klik tombol **1-Tap Login** di halaman `/demo
 
 ## 📚 Tautan Dokumentasi Terkait
 
+- [📘 Dokumen Pendukung Teknis & ERD](docs/DOKUMEN_TEKNIS.md)
 - [📑 Master PRD (Product Requirements Document)](docs/PRD.md)
 - [🧠 Whitepaper AI Engine & Model Card](docs/AI.md)
 - [🗄️ Dokumentasi Arsitektur Backend & Database](docs/BACKEND.md)
 - [📊 Backlog & Status 72 Fitur F-ID](docs/BACKLOG.md)
-- [🔍 Analisis Kesenjangan (Gap Analysis)](docs/GAP_ANALYSIS.md)
-- [🎤 Panduan Materi & Slide Pitch Deck](docs/MATERI_PRESENTASI.md)
 
 ---
 

@@ -55,7 +55,7 @@ Route `/demo` menampilkan tiga kartu kredensial dengan tombol "Masuk sebagai ini
 **Acceptance criteria**
 - [ ] Seed dijalankan lewat migrasi Supabase yang dapat diulang (`supabase/seed_demo.sql`), bukan penyisipan manual.
 - [ ] Koordinat lat/lng demo benar-benar berada di DIY dan terlihat wajar saat dibuka di `/pembeli/peta`.
-- [ ] Endpoint `POST /api/demo/reset` (dilindungi header token) mengembalikan ketiga akun ke keadaan awal. Dijalankan otomatis via Vercel Cron setiap 6 jam selama 5–23 Agustus.
+- [ ] Endpoint `POST /api/demo/reset` (dilindungi header token) mengembalikan ketiga akun ke keadaan awal. Dijalankan otomatis via Vercel Cron setiap 6 jam selama jendela penjurian 8–21 September.
 - [ ] Data demo ditandai `is_demo = true`; tidak pernah tercampur ke agregat dampak platform nyata.
 - [ ] Kredensial demo juga dicantumkan di README repositori dan di halaman terakhir pitch deck.
 

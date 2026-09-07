@@ -40,24 +40,28 @@ class PantasModel:
         self._lock = threading.Lock()
 
     def _get_yolo_model(self, commodity: str):
-        """Mekanisme Caching Thread-Safe: Load model hanya jika belum ada di memori."""
+        """Mekanisme Caching Thread-Safe: Load model ONNX atau PyTorch jika belum ada di memori."""
         if commodity not in self.yolo_models:
             with self._lock:
                 if commodity not in self.yolo_models:
-                    model_path = ROOT_DIR / "export_models" / f"{commodity}_seg.pt"
+                    onnx_path = ROOT_DIR / "export_models" / f"{commodity}_seg.onnx"
+                    pt_path = ROOT_DIR / "export_models" / f"{commodity}_seg.pt"
+                    model_path = onnx_path if onnx_path.exists() else pt_path
                     if not model_path.exists():
-                        raise FileNotFoundError(f"Model YOLO untuk '{commodity}' tidak ditemukan di {model_path}")
+                        raise FileNotFoundError(f"Model YOLO untuk '{commodity}' tidak ditemukan di {pt_path}")
                     self.yolo_models[commodity] = YOLO(str(model_path))
         return self.yolo_models[commodity]
 
     def _get_yolo2_model(self, commodity: str):
-        """Mekanisme Caching Thread-Safe: Load model YOLO 2 (Klasifikasi) hanya jika belum ada di memori."""
+        """Mekanisme Caching Thread-Safe: Load model YOLO 2 Klasifikasi ONNX atau PyTorch jika belum ada di memori."""
         if commodity not in self.yolo2_models:
             with self._lock:
                 if commodity not in self.yolo2_models:
-                    model_path = ROOT_DIR / "export_models" / f"{commodity}_cls.pt"
+                    onnx_path = ROOT_DIR / "export_models" / f"{commodity}_cls.onnx"
+                    pt_path = ROOT_DIR / "export_models" / f"{commodity}_cls.pt"
+                    model_path = onnx_path if onnx_path.exists() else pt_path
                     if not model_path.exists():
-                        raise FileNotFoundError(f"Model YOLO 2 (Klasifikasi) untuk '{commodity}' tidak ditemukan di {model_path}")
+                        raise FileNotFoundError(f"Model YOLO 2 (Klasifikasi) untuk '{commodity}' tidak ditemukan di {pt_path}")
                     self.yolo2_models[commodity] = YOLO(str(model_path))
         return self.yolo2_models[commodity]
 
@@ -216,6 +220,11 @@ class PantasModel:
                         top_class_conf = 0.0
                     # ----------------------------------------
                     
+                    # Sederhanakan koordinat poligon untuk rendering SVG interaktif di frontend
+                    perimeter = cv2.arcLength(contour, True)
+                    approx_poly = cv2.approxPolyDP(contour, 0.005 * perimeter if perimeter > 0 else 0.01, True)
+                    polygon_pts = approx_poly.reshape(-1, 2).tolist()
+
                     grading_results.append({
                         "id": i + 1,
                         "grade": grade,
@@ -228,6 +237,7 @@ class PantasModel:
                         "alasan_grade": grade_result['alasan_grade'],
                         "yolo2_kondisi": top_class_name,
                         "yolo2_conf": round(top_class_conf, 2),
+                        "poligon": polygon_pts,
                         "bbox": [x, y, w, h]
                     })
 
@@ -300,6 +310,7 @@ class PantasModel:
         dict_results = {
             "status": "success",
             "komoditas": commodity_specific,
+            "peringatan_komoditas": self._evaluasi_mismatch_komoditas(grading_results, commodity_specific),
             "objek_terdeteksi": total_obj,
             "kalibrasi": {
                 "referensi": "koin_500",
@@ -328,3 +339,59 @@ class PantasModel:
         dict_results["hash_audit"] = "sha256:" + hashlib.sha256(json_str.encode()).hexdigest()
         
         return dict_results, annotated_img
+
+    @staticmethod
+    def _evaluasi_mismatch_komoditas(grading_results: list, commodity_specific: str) -> dict:
+        """
+        Deteksi otomatis ketidakcocokan komoditas pilihan pengguna dengan fitur fisik objek.
+        Misal: Memilih 'tomato_sayur' tetapi objek terdeteksi lonjong (Cabai / Timun).
+        """
+        dasar = commodity_specific.split("_")[0]
+        if not grading_results:
+            return {
+                "mismatch": False,
+                "komoditas_dipilih": commodity_specific,
+                "saran_komoditas": None,
+                "pesan": None
+            }
+
+        circularities = [r["circularity"] for r in grading_results if r.get("circularity") is not None]
+        aspect_ratios = []
+        for r in grading_results:
+            bbox = r.get("bbox") or [0, 0, 1, 1]
+            w, h = bbox[2], bbox[3]
+            if w > 0 and h > 0:
+                aspect_ratios.append(max(w, h) / min(w, h))
+
+        med_circ = float(np.median(circularities)) if circularities else 0.8
+        med_ar = float(np.median(aspect_ratios)) if aspect_ratios else 1.0
+
+        saran = None
+        pesan = None
+        mismatch = False
+
+        if dasar == "tomato":
+            if med_ar > 2.2 and med_circ < 0.55:
+                mismatch = True
+                saran = "chili_merah_besar" if med_ar > 3.0 else "cucumber_lokal"
+                pesan = (
+                    f"Objek terdeteksi memiliki bentuk lonjong (rasio aspek {med_ar:.1f}), "
+                    f"yang lebih mirip dengan karakter Cabai/Timun ketimbang Tomat. "
+                    f"Apakah Anda bermaksud memilih komoditas '{saran}'?"
+                )
+        elif dasar in ("chili", "cucumber", "carrot"):
+            if med_ar < 1.3 and med_circ > 0.75:
+                mismatch = True
+                saran = "tomato_sayur"
+                pesan = (
+                    f"Objek terdeteksi memiliki bentuk simetris bulat (kebundaran {med_circ:.2f}), "
+                    f"yang lebih mirip dengan Tomat ketimbang '{dasar.capitalize()}'. "
+                    f"Apakah Anda bermaksud memilih komoditas Tomat?"
+                )
+
+        return {
+            "mismatch": mismatch,
+            "komoditas_dipilih": commodity_specific,
+            "saran_komoditas": saran,
+            "pesan": pesan
+        }
